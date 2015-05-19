@@ -1,0 +1,7 @@
+AAA
+#NAME(&1, &2) {text1 &1 text1 &2}
+
+BBB
+$NAME(X, Y)
+
+$M( sd, e2, 1)
