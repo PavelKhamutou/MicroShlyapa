@@ -97,7 +97,9 @@ public class MacroGenerator {
         System.out.println();
         if(mcLib.search(name)){
             String[] freeText = mcLib.getMacro(name).getFreeText();
-            System.out.println(freeText[0] + parameters[0] + freeText[1] + parameters[1]);
+            for(int i = 0; i < numberOfParameters; i++){
+                System.out.println(freeText[i] + parameters[i]);
+            }
         }
     }
 
