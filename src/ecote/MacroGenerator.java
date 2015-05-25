@@ -1,4 +1,6 @@
 package ecote;
+import ecote.Exceptions.*;
+
 import java.util.*;
 import java.io.*;
 
@@ -17,6 +19,7 @@ public class MacroGenerator {
     private static final char ampersant = '&';
     private static final char COMMA = ',';
     private static final char EOF = '\n';
+    private static final String MISSING_PARAMS_STRING = "MISSING_PARAMETER_";
 
 
     private static final MacroLib macLib = new MacroLib();
@@ -115,33 +118,62 @@ public class MacroGenerator {
             }
         }
         paramsList.add(parameter);
-        System.out.println(paramsList.toString());
 
-        Macro m = macLib.getMacros(macroName);
-        String[] freeText = m.getFreeText();
-        int mcNumberParameters = m.getNumberOfParameters();
+        try {
+            Macro m = macLib.getMacros(macroName);
+            String[] freeText = m.getFreeText();
+            int mcNumberParameters = m.getNumberOfParameters();
+            int callNumberParameters = paramsList.size();
 
-
-        int diff = 0;
-        if((paramsList.size() - mcNumberParameters) > 0){
-            diff = paramsList.size() - mcNumberParameters;
-        }
-
-        for(int k = 0; k < paramsList.size(); k++){
-            if(k >= mcNumberParameters){
-                outputStream.write(freeText[k - diff].toCharArray());
-                outputStream.write(paramsList.get(k).toCharArray());
+            try {
+                int diff = countDifference(callNumberParameters, m.getNumberOfParameters());
+                for(int k = 0; k < callNumberParameters; k++){
+                    if(k >= mcNumberParameters){
+                        outputStream.write(freeText[k - diff].toCharArray());
+                        outputStream.write(paramsList.get(k).toCharArray());
+                    }
+                    else {
+                        outputStream.write(freeText[k].toCharArray());
+                        outputStream.write(paramsList.get(k).toCharArray());
+                    }
+                }
+            } catch (NotEnoughParamiters e) {
+                System.err.println("Error!: Not enough parameters:");
+                System.err.println("\t\tThe deffinition of macros <" + m.getName() + "> requires <" + m.getNumberOfParameters() + "> parameters");
+                System.err.println("\t\tbut <" + paramsList.size() + "> found. Missing parameters will be substituted with <" + MISSING_PARAMS_STRING + ">");
+                for(int k = 0; k < mcNumberParameters; k++){
+                    if(k >= callNumberParameters){
+                        outputStream.write(freeText[k].toCharArray());
+                        outputStream.write((MISSING_PARAMS_STRING + k).toCharArray());
+                    }
+                    else {
+                        outputStream.write(freeText[k].toCharArray());
+                        outputStream.write(paramsList.get(k).toCharArray());
+                    }
+                }
             }
-            else {
-                outputStream.write(freeText[k].toCharArray());
-                outputStream.write(paramsList.get(k).toCharArray());
-            }
+        } catch (MacrosNotFound macrosNotFound) {
+            System.err.println("Error!: Macros not found:\n\t\tMacros: <" + macroName + "> not found in the library");
         }
 
     }
 
-    private void addMacrosToLib(String name, int numberIfParamiters, String[] freeText){
-        macLib.addMacro(name, numberIfParamiters, freeText);
+    private int countDifference(int paramsFromCall, int paramsFromDeffinition) throws NotEnoughParamiters {
+        int difference = paramsFromCall - paramsFromDeffinition;
+        if(difference < 0){
+            throw new NotEnoughParamiters();
+        }
+        else {
+            return difference;
+        }
+    }
+
+    private void addMacrosToLib(String name, int numberIfParamiters, String[] freeText) {
+        try {
+            macLib.addMacro(name, numberIfParamiters, freeText);
+        } catch (MacrosNameIsAlreadyUsed e){
+            System.err.println("Warning!: Incorrect macro name:\n\t\t  <" + name + "> has been already used");
+        }
     }
 
     private int getChar() throws IOException {
