@@ -2,26 +2,37 @@ package ecote;
 
 import java.util.*;
 
-public class MacroLib {
-    private List<Macro> macroLib = new ArrayList<Macro>();
+//addMacros()
+//getMacros()
 
-    /*while (it.hasNext()) {
-  User user = it.next();
-  if (user.getName().equals("John Doe")) {
-    it.remove();
-  }
-}*/
+
+public class MacroLib {
+    private Map<String, Macro> mcLib = new HashMap<>();
+
 
     public void addMacro(String name, int numberIfParamiters, String[] freeText) {
-        macroLib.add(new Macro(name, numberIfParamiters, freeText));
+        if(mcLib.containsKey(name)){
+            mcLib.remove(name);
+            mcLib.put(name, new Macro(name, numberIfParamiters, freeText));
+        }
+        else{
+            mcLib.put(name, new Macro(name, numberIfParamiters, freeText));
+        }
     }
 
     public Macro getMacros(String name) {
-        return macroLib.get(0);
+        if(mcLib.containsKey(name)){
+            return mcLib.get(name);
+        }
+        else{
+            return null;
+        }
     }
+
+
 
     @Override
     public String toString() {
-        return "macroLib: \n" + macroLib.toString();
+        return "macroLib: \n" + mcLib.toString();
     }
 }

@@ -8,15 +8,19 @@ public class MacroGenerator {
     private String inputFile;
     private String outputFile;
 
-    private static final char hash = '#';
+    private static final char HASH = '#';
     private static final char openingBracket = '(';
     private static final char closingBracker = ')';
     private static final char openingCurveBracket = '{';
     private static final char closingCurveBracket = '}';
     private static final char dollar = '$';
     private static final char ampersant = '&';
-    private static final char comma = ',';
+    private static final char COMMA = ',';
+    private static final char EOF = '\n';
+
+
     private static final MacroLib macLib = new MacroLib();
+
     private int readChar;
     private int prevReadChar;
 
@@ -37,7 +41,7 @@ public class MacroGenerator {
 
             try {
                 while(getChar() != -1) {
-                    if((char)readChar == hash){
+                    if((char)readChar == HASH && prevReadChar == EOF){
                         readMacros();
                     }
                     else if((char)readChar == dollar) {
@@ -58,9 +62,7 @@ public class MacroGenerator {
 
     }
 
-    //read name
-    //read params
-    //read free text
+
     private void readMacros() throws IOException {
         String name = "";
         while ((char)getChar() != openingBracket){
@@ -75,7 +77,7 @@ public class MacroGenerator {
             }
         }
 
-        while((char)getChar() != openingCurveBracket) {} //scroll till {
+        while((char)getChar() != openingCurveBracket /*&& ((char)readChar) == ' ' || ((char)readChar) == '\n'*/) {} //scroll till {
 
         int i = 0;
         String[] freeText = new String[numberIfParamiters];
@@ -98,30 +100,44 @@ public class MacroGenerator {
 
     private void callMacros() throws IOException {
         String macroName = "";
-        String[] paramsList = new String[3];
+        List<String> paramsList = new ArrayList<String>();
         String parameter = "";
-        int i = 0;
         while((char)getChar() != openingBracket) {
             macroName += (char)readChar;
         }
         while((char)getChar() != closingBracker) {
-            if((char)readChar == comma){
-                paramsList[i] = parameter;
-                i++;
+            if((char)readChar == COMMA){
+                paramsList.add(parameter);
                 parameter = "";
             }
             else{
                 parameter += (char)readChar;
             }
         }
-        paramsList[i] = parameter;
-        System.out.println(Arrays.toString(paramsList));
+        paramsList.add(parameter);
+        System.out.println(paramsList.toString());
+
         Macro m = macLib.getMacros(macroName);
         String[] freeText = m.getFreeText();
-        for(int k = 0; k < m.getNumberOfParameters(); k++) {
-            outputStream.write(freeText[k].toCharArray());
-            outputStream.write(paramsList[k].toCharArray());
+        int mcNumberParameters = m.getNumberOfParameters();
+
+
+        int diff = 0;
+        if((paramsList.size() - mcNumberParameters) > 0){
+            diff = paramsList.size() - mcNumberParameters;
         }
+
+        for(int k = 0; k < paramsList.size(); k++){
+            if(k >= mcNumberParameters){
+                outputStream.write(freeText[k - diff].toCharArray());
+                outputStream.write(paramsList.get(k).toCharArray());
+            }
+            else {
+                outputStream.write(freeText[k].toCharArray());
+                outputStream.write(paramsList.get(k).toCharArray());
+            }
+        }
+
     }
 
     private void addMacrosToLib(String name, int numberIfParamiters, String[] freeText){
