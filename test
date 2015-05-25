@@ -1,5 +1,5 @@
 AAA
 #NAME(&1, &2, &3) { text &1 text &2 text &3}
 BBB
-#NAME2(&1, &2) { text1 &1 text1 &2}
-$NAME(X)
+$NAME(X, Y, Z)
+CCC

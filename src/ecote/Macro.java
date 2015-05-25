@@ -29,6 +29,6 @@ public class Macro {
 
     @Override
     public String toString() {
-        return "\t<Macros info: \n\t\t" + "Name: " + getName() + "\n\t\t" + "numberOfParameters: " + getNumberOfParameters() + "\n\t\tfree text: " + Arrays.toString(freeText) + ">\n";
+        return "\tMacros info: \n\t\t" + "Name: " + getName() + "\n\t\t" + "numberOfParameters: " + getNumberOfParameters() + "\n\t\tfree text: " + Arrays.toString(freeText) + "\n";
     }
 }
