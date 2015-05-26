@@ -5,9 +5,9 @@ public class Singleton {
 
     private Singleton() {}
 
-    public static MacroGenerator getInstance(String inputFile, String outputFile) {
+    public static MacroGenerator getInstance(String inputFile, String outputFile, String logFile) {
         if (instance == null) {
-            instance = new MacroGenerator(inputFile, outputFile);
+            instance = new MacroGenerator(inputFile, outputFile, logFile);
         }
         return instance;
     }

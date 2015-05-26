@@ -1,13 +1,11 @@
 HELLO
-DEF MACRO BUT YOU WONT SEE
-#M(&1, &2){
-hey &1
-whatsup &2
+#M(&1, &2) {
+    one &1
+    two &2
 }
 ONE MORE
-#N(&1){1 &1}
-FREE TEXT
-CALLS:
-$N(X, Y)
-$M(123, 321, 111, 222)
-THANK YOU
+$M(X, Y)
+
+
+
+

@@ -9,6 +9,7 @@ public class MacroGenerator {
 
     private String inputFile;
     private String outputFile;
+    private String logFile;
 
     private static final char HASH = '#';
     private static final char OPENING_BRACKET = '(';
@@ -31,18 +32,21 @@ public class MacroGenerator {
 
     FileReader inputStream = null;
     FileWriter outputStream = null;
+    FileWriter logStream = null;
 
 
-    public MacroGenerator(String inputFile, String outputFile){
+    public MacroGenerator(String inputFile, String outputFile, String logFile){
         this.inputFile = inputFile;
         this.outputFile = outputFile;
+        this.logFile = logFile;
     }
 
-    public void read(){
+    public void read() throws IOException {
         try {
 
             inputStream = new FileReader(inputFile);
             outputStream = new FileWriter(outputFile);
+            logStream = new FileWriter(logFile);
 
             try {
                 while(getChar() != -1) {
@@ -52,6 +56,7 @@ public class MacroGenerator {
                             readMacros();
                         } catch (IllegalMacroDefinition e) {
                             System.err.println(e.getMessage(macroDefOrCallToCheck, startLine));
+                            logStream.write(e.getMessage(macroDefOrCallToCheck, startLine));
                         }
                     }
                     else if((char)readChar == DOLLAR && prevReadChar == EOF) {
@@ -60,8 +65,8 @@ public class MacroGenerator {
                             callMacros();
                         } catch (IllegalMacroCall e) {
                             System.err.println(e.getMessage(macroDefOrCallToCheck, startLine));
+                            logStream.write(e.getMessage(macroDefOrCallToCheck, startLine));
                         }
-
                     }
                     else{
                         outputStream.write(readChar);
@@ -78,18 +83,6 @@ public class MacroGenerator {
 
     }
 
-
-    /*private boolean containsChars(String str){
-
-        if(str.contains(Character.toString(HASH)) || str.contains(Character.toString(OPENING_BRACKET)) ||
-            str.contains(Character.toString(CLOSING_BRACKET)) || str.contains(Character.toString(OPENING_CURVE_BRACKET)) ||
-            str.contains(Character.toString(CLOSING_CURVE_BRACKET)) || str.contains(Character.toString(DOLLAR)) ||
-            str.contains(Character.toString(AMPERSANT)) || str.contains(Character.toString(COMMA))) {
-            return false;
-        }
-        return true;
-
-    }*/
 
     private void createStringToCheckDefinition(){
         macroDefOrCallToCheck += (char)readChar;
@@ -155,7 +148,7 @@ public class MacroGenerator {
         else {
             for(int i = 0; i < defParamValue.size(); i++){
                 if(!defParamValue.get(i).equals(bodyParamValue.get(i))) {
-                    throw new IllegalMacroDefinition("Parameter list if not equal in body and definition!");
+                    throw new IllegalMacroDefinition("Parameter list is not equal in body and definition!");
                 }
             }
         }
@@ -209,32 +202,30 @@ public class MacroGenerator {
             try {
                 countDifference(callNumberParameters, mcNumberParameters);
                 for(int k = 0, l = 0; k < callNumberParameters; k++, l++){
-                    if(k >= mcNumberParameters){
+                    if(l == mcNumberParameters){
                         l = 0;
-                        outputStream.write(freeText[l].toCharArray());
-                        outputStream.write(paramsList.get(k).toCharArray());
                     }
-                    else {
-                        outputStream.write(freeText[l].toCharArray());
-                        outputStream.write(paramsList.get(k).toCharArray());
-                    }
+                    outputStream.write(freeText[l].toCharArray());
+                    outputStream.write(paramsList.get(k).toCharArray());
                 }
             } catch (NotEnoughParameters e) {
+
                 System.err.println(e.getMessage(m.getName(), m.getNumberOfParameters(), paramsList.size(), MISSING_PARAMS_STRING, startLine));
+                logStream.write(e.getMessage(m.getName(), m.getNumberOfParameters(), paramsList.size(), MISSING_PARAMS_STRING, startLine));
 
                 for(int k = 0; k < mcNumberParameters; k++){
+                    outputStream.write(freeText[k].toCharArray());
                     if(k >= callNumberParameters){
-                        outputStream.write(freeText[k].toCharArray());
                         outputStream.write((MISSING_PARAMS_STRING + "_#" + k).toCharArray());
                     }
                     else {
-                        outputStream.write(freeText[k].toCharArray());
                         outputStream.write(paramsList.get(k).toCharArray());
                     }
                 }
             }
         } catch (MacrosNotFound e) {
             System.err.println(e.getMessage(macroName, startLine));
+            logStream.write(e.getMessage(macroName, startLine));
         }
 
     }
@@ -271,6 +262,11 @@ public class MacroGenerator {
             currentLine++;
         }
         return (readChar = inputStream.read());
+    }
+
+    private void errorLogging(String errorMessage) throws IOException {
+        System.err.println(errorMessage);
+        logStream.write(errorMessage);
     }
 
 }
