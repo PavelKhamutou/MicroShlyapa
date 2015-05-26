@@ -8,7 +8,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         MacroGenerator m = Singleton.getInstance("test", "testout");
         m.read();
-        //System.out.println(m);
+        System.out.println("Finish!");
 
     }
 

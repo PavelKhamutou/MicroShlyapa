@@ -11,16 +11,18 @@ public class MacroGenerator {
     private String outputFile;
 
     private static final char HASH = '#';
-    private static final char openingBracket = '(';
-    private static final char closingBracker = ')';
-    private static final char openingCurveBracket = '{';
-    private static final char closingCurveBracket = '}';
-    private static final char dollar = '$';
-    private static final char ampersant = '&';
+    private static final char OPENING_BRACKET = '(';
+    private static final char CLOSING_BRACKET = ')';
+    private static final char OPENING_CURVE_BRACKET = '{';
+    private static final char CLOSING_CURVE_BRACKET = '}';
+    private static final char DOLLAR = '$';
+    private static final char AMPERSANT = '&';
     private static final char COMMA = ',';
     private static final char EOF = '\n';
     private static final String MISSING_PARAMS_STRING = "MISSING_PARAMETER";
 
+    private String macroDefToCheck = "";
+    private String regexForMacroDefinition = "#\\w+\\((\\s*(&[1-9])\\s*,?)+\\s*\\)\\s*\\{(\\s*\\w+\\s*&[1-9])+\\s*\\}";
 
     private static final MacroLib macLib = new MacroLib();
 
@@ -45,9 +47,13 @@ public class MacroGenerator {
             try {
                 while(getChar() != -1) {
                     if((char)readChar == HASH && prevReadChar == EOF){
-                        readMacros();
+                        try {
+                            readMacros();
+                        } catch (IllegalMacrosDefinition e) {
+                            System.err.println(e.getMessage(macroDefToCheck));
+                        }
                     }
-                    else if((char)readChar == dollar && prevReadChar == EOF) {
+                    else if((char)readChar == DOLLAR && prevReadChar == EOF) {
                         callMacros();
 
                     }
@@ -67,49 +73,99 @@ public class MacroGenerator {
     }
 
 
-    private void readMacros() throws IOException {
-        String name = "";
-        while ((char)getChar() != openingBracket){
-            name += (char)readChar;
+    /*private boolean containsChars(String str){
+
+        if(str.contains(Character.toString(HASH)) || str.contains(Character.toString(OPENING_BRACKET)) ||
+            str.contains(Character.toString(CLOSING_BRACKET)) || str.contains(Character.toString(OPENING_CURVE_BRACKET)) ||
+            str.contains(Character.toString(CLOSING_CURVE_BRACKET)) || str.contains(Character.toString(DOLLAR)) ||
+            str.contains(Character.toString(AMPERSANT)) || str.contains(Character.toString(COMMA))) {
+            return false;
         }
+        return true;
 
-        int numberIfParamiters = 0;
+    }*/
 
-        while ((char)getChar() != closingBracker){
-            if((char)readChar == ampersant){
-                numberIfParamiters++;
+    private void createStringToCheckDeffinition(){
+        macroDefToCheck += (char)readChar;
+    }
+
+    private void readMacros() throws IOException, IllegalMacrosDefinition {
+
+        macroDefToCheck = Character.toString((char)readChar);
+
+        List<Integer> defParamValue = new ArrayList<Integer>();
+        List<Integer> bodyParamValue = new ArrayList<Integer>();
+        List<String> freeText = new ArrayList<String>();
+
+        String freeTextParam = "";
+        String name = "";
+
+        while ((char)getChar() != OPENING_BRACKET){
+            name += (char)readChar;
+            createStringToCheckDeffinition();
+        }
+        createStringToCheckDeffinition();
+
+
+
+
+        while ((char)getChar() != CLOSING_BRACKET){
+            createStringToCheckDeffinition();
+            if((char)readChar == AMPERSANT) {
+                defParamValue.add(Character.getNumericValue(getChar()));
+                createStringToCheckDeffinition();
             }
         }
+        createStringToCheckDeffinition();
 
-        while((char)getChar() != openingCurveBracket /*&& ((char)readChar) == ' ' || ((char)readChar) == '\n'*/) {} //scroll till {
 
-        int i = 0;
-        String[] freeText = new String[numberIfParamiters];
-        String freeTextParam = "";
 
-        while((char)getChar() != closingCurveBracket){
-            if((char)readChar == ampersant){
-                freeText[i] = freeTextParam;
-                i++;
+        while((char)getChar() != OPENING_CURVE_BRACKET) {
+            createStringToCheckDeffinition();
+        }
+        createStringToCheckDeffinition();
+
+
+
+        while((char)getChar() != CLOSING_CURVE_BRACKET){
+            createStringToCheckDeffinition();
+            if((char)readChar == AMPERSANT){
+                freeText.add(freeTextParam);
                 freeTextParam = "";
-                getChar();
+                bodyParamValue.add(Character.getNumericValue(getChar()));
+                createStringToCheckDeffinition();
             }
             else {
-                freeTextParam += (char) readChar;
+                freeTextParam += (char)readChar;
             }
         }
-        addMacrosToLib(name, numberIfParamiters, freeText);
+        createStringToCheckDeffinition();
+
+        //all checking starts here ->
+        if(!macroDefToCheck.matches(regexForMacroDefinition) || defParamValue.size() != bodyParamValue.size()){
+            throw new IllegalMacrosDefinition();
+        }
+        else {
+            for(int i = 0; i < defParamValue.size(); i++){
+                if(defParamValue.get(i) != bodyParamValue.get(i)){
+                    throw new IllegalMacrosDefinition("Parameter list if not equal in body and definition!");
+                }
+            }
+        }
+
+        addMacrosToLib(name, defParamValue.size(), freeText.toArray(new String[freeText.size()]));
 
     }
+
 
     private void callMacros() throws IOException {
         String macroName = "";
         List<String> paramsList = new ArrayList<String>();
         String parameter = "";
-        while((char)getChar() != openingBracket) {
+        while((char)getChar() != OPENING_BRACKET) {
             macroName += (char)readChar;
         }
-        while((char)getChar() != closingBracker) {
+        while((char)getChar() != CLOSING_BRACKET) {
             if((char)readChar == COMMA){
                 paramsList.add(parameter);
                 parameter = "";

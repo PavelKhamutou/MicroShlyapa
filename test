@@ -1,8 +1,11 @@
 AAA
-#NAME(&1, &2){123 &1 321 &2}
+
+#NAME(&1,&2) {
+    sd &1
+    sa &2
+
+}
 BB
-#as(){}
-#sd(){}
-#NAME(&1, &2){body &1 k &2}
-$NAME(x, y, z)
+
+$NAME(x,z ,e ,qw)
 aaa
