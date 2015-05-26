@@ -32,8 +32,8 @@ public class Macro {
 
     public boolean getUsed() { return isUsed; }
 
-    @Override
+   /* @Override
     public String toString() {
         return "\tMacros info: \n\t\t" + "Name: " + getName() + "\n\t\t" + "numberOfParameters: " + getNumberOfParameters() + "\n\t\tfree text: " + Arrays.toString(freeText) + "\n";
-    }
+    }*/
 }

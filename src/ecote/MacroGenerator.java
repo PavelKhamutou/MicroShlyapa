@@ -21,9 +21,9 @@ public class MacroGenerator {
     private static final char EOF = '\n';
     private static final String MISSING_PARAMS_STRING = "MISSING_PARAMETER";
 
-    private String macroDefToCheck = "";
-    private String regexForMacroDefinition = "#\\w+\\((\\s*(&[1-9])\\s*,?)+\\s*\\)\\s*\\{(\\s*\\w+\\s*&[1-9])+\\s*\\}";
-
+    private String macroDefOrCallToCheck = "";
+    private int currentLine = 1;
+    private int startLine;
     private static final MacroLib macLib = new MacroLib();
 
     private int readChar;
@@ -48,13 +48,19 @@ public class MacroGenerator {
                 while(getChar() != -1) {
                     if((char)readChar == HASH && prevReadChar == EOF){
                         try {
+                            startLine = currentLine;
                             readMacros();
-                        } catch (IllegalMacrosDefinition e) {
-                            System.err.println(e.getMessage(macroDefToCheck));
+                        } catch (IllegalMacroDefinition e) {
+                            System.err.println(e.getMessage(macroDefOrCallToCheck, startLine));
                         }
                     }
                     else if((char)readChar == DOLLAR && prevReadChar == EOF) {
-                        callMacros();
+                        try {
+                            startLine = currentLine;
+                            callMacros();
+                        } catch (IllegalMacroCall e) {
+                            System.err.println(e.getMessage(macroDefOrCallToCheck, startLine));
+                        }
 
                     }
                     else{
@@ -85,13 +91,13 @@ public class MacroGenerator {
 
     }*/
 
-    private void createStringToCheckDeffinition(){
-        macroDefToCheck += (char)readChar;
+    private void createStringToCheckDefinition(){
+        macroDefOrCallToCheck += (char)readChar;
     }
 
-    private void readMacros() throws IOException, IllegalMacrosDefinition {
+    private void readMacros() throws IOException, IllegalMacroDefinition {
 
-        macroDefToCheck = Character.toString((char)readChar);
+        macroDefOrCallToCheck = Character.toString((char)readChar);
 
         List<Integer> defParamValue = new ArrayList<Integer>();
         List<Integer> bodyParamValue = new ArrayList<Integer>();
@@ -102,53 +108,54 @@ public class MacroGenerator {
 
         while ((char)getChar() != OPENING_BRACKET){
             name += (char)readChar;
-            createStringToCheckDeffinition();
+            createStringToCheckDefinition();
         }
-        createStringToCheckDeffinition();
+        createStringToCheckDefinition();
 
 
 
 
         while ((char)getChar() != CLOSING_BRACKET){
-            createStringToCheckDeffinition();
+            createStringToCheckDefinition();
             if((char)readChar == AMPERSANT) {
                 defParamValue.add(Character.getNumericValue(getChar()));
-                createStringToCheckDeffinition();
+                createStringToCheckDefinition();
             }
         }
-        createStringToCheckDeffinition();
+        createStringToCheckDefinition();
 
 
 
         while((char)getChar() != OPENING_CURVE_BRACKET) {
-            createStringToCheckDeffinition();
+            createStringToCheckDefinition();
         }
-        createStringToCheckDeffinition();
+        createStringToCheckDefinition();
 
 
 
         while((char)getChar() != CLOSING_CURVE_BRACKET){
-            createStringToCheckDeffinition();
+            createStringToCheckDefinition();
             if((char)readChar == AMPERSANT){
                 freeText.add(freeTextParam);
                 freeTextParam = "";
                 bodyParamValue.add(Character.getNumericValue(getChar()));
-                createStringToCheckDeffinition();
+                createStringToCheckDefinition();
             }
             else {
                 freeTextParam += (char)readChar;
             }
         }
-        createStringToCheckDeffinition();
+        createStringToCheckDefinition();
 
         //all checking starts here ->
-        if(!macroDefToCheck.matches(regexForMacroDefinition) || defParamValue.size() != bodyParamValue.size()){
-            throw new IllegalMacrosDefinition();
+        String regexForMacroDefinition = "#\\w+\\((\\s*(&[1-9])\\s*,?)+\\s*\\)\\s*\\{(\\s*\\w+\\s*&[1-9])+\\s*\\}";
+        if(!macroDefOrCallToCheck.matches(regexForMacroDefinition) || defParamValue.size() != bodyParamValue.size()){
+            throw new IllegalMacroDefinition();
         }
         else {
             for(int i = 0; i < defParamValue.size(); i++){
-                if(defParamValue.get(i) != bodyParamValue.get(i)){
-                    throw new IllegalMacrosDefinition("Parameter list if not equal in body and definition!");
+                if(!defParamValue.get(i).equals(bodyParamValue.get(i))) {
+                    throw new IllegalMacroDefinition("Parameter list if not equal in body and definition!");
                 }
             }
         }
@@ -158,14 +165,22 @@ public class MacroGenerator {
     }
 
 
-    private void callMacros() throws IOException {
+    private void callMacros() throws IOException, IllegalMacroCall {
+        macroDefOrCallToCheck = Character.toString((char)readChar);
         String macroName = "";
         List<String> paramsList = new ArrayList<String>();
         String parameter = "";
+
         while((char)getChar() != OPENING_BRACKET) {
             macroName += (char)readChar;
+            createStringToCheckDefinition();
         }
+        createStringToCheckDefinition();
+
+
+
         while((char)getChar() != CLOSING_BRACKET) {
+            createStringToCheckDefinition();
             if((char)readChar == COMMA){
                 paramsList.add(parameter);
                 parameter = "";
@@ -174,7 +189,15 @@ public class MacroGenerator {
                 parameter += (char)readChar;
             }
         }
+        createStringToCheckDefinition();
         paramsList.add(parameter);
+
+
+        String regexForMacroCall = "\\$\\w+\\(\\s*(\\w*\\s*,?)+\\s*\\)";
+
+        if(!macroDefOrCallToCheck.matches(regexForMacroCall)){
+            throw new IllegalMacroCall();
+        }
 
         try {
             Macro m = macLib.getMacros(macroName);
@@ -184,7 +207,7 @@ public class MacroGenerator {
             int callNumberParameters = paramsList.size();
 
             try {
-                int diff = countDifference(callNumberParameters, mcNumberParameters);
+                countDifference(callNumberParameters, mcNumberParameters);
                 for(int k = 0, l = 0; k < callNumberParameters; k++, l++){
                     if(k >= mcNumberParameters){
                         l = 0;
@@ -197,7 +220,7 @@ public class MacroGenerator {
                     }
                 }
             } catch (NotEnoughParameters e) {
-                System.err.println(e.getMessage(m.getName(), m.getNumberOfParameters(), paramsList.size(), MISSING_PARAMS_STRING));
+                System.err.println(e.getMessage(m.getName(), m.getNumberOfParameters(), paramsList.size(), MISSING_PARAMS_STRING, startLine));
 
                 for(int k = 0; k < mcNumberParameters; k++){
                     if(k >= callNumberParameters){
@@ -211,7 +234,7 @@ public class MacroGenerator {
                 }
             }
         } catch (MacrosNotFound e) {
-            System.err.println(e.getMessage(macroName));
+            System.err.println(e.getMessage(macroName, startLine));
         }
 
     }
@@ -230,7 +253,7 @@ public class MacroGenerator {
         try {
             macLib.addMacro(macroName, numberIfParamiters, freeText);
         } catch (MacrosNameIsAlreadyUsed e){
-            System.err.println(e.getMessage(macroName));
+            System.err.println(e.getMessage(macroName, startLine));
         }
     }
 
@@ -243,11 +266,11 @@ public class MacroGenerator {
 
     private int getChar() throws IOException {
         prevReadChar = readChar;
+
+        if((char)prevReadChar == '\n'){
+            currentLine++;
+        }
         return (readChar = inputStream.read());
     }
 
-    @Override
-    public String toString() {
-        return super.toString() + "\n" + macLib;
-    }
 }

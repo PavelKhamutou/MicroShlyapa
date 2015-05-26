@@ -3,22 +3,19 @@ package ecote;
 import java.util.*;
 import ecote.Exceptions.*;
 
-//addMacros()
-//getMacros()
-
 
 public class MacroLib {
     private Map<String, Macro> mcLib = new HashMap<String, Macro>();
 
 
-    public void addMacro(String name, int numberIfParamiters, String[] freeText) throws MacrosNameIsAlreadyUsed {
+    public void addMacro(String name, int numberIfParameters, String[] freeText) throws MacrosNameIsAlreadyUsed {
         if(mcLib.containsKey(name)){
             mcLib.remove(name);
-            mcLib.put(name, new Macro(name, numberIfParamiters, freeText));
+            mcLib.put(name, new Macro(name, numberIfParameters, freeText));
             throw new MacrosNameIsAlreadyUsed();
         }
         else{
-            mcLib.put(name, new Macro(name, numberIfParamiters, freeText));
+            mcLib.put(name, new Macro(name, numberIfParameters, freeText));
         }
     }
 
@@ -41,9 +38,9 @@ public class MacroLib {
         }
         return unused;
     }
-
+/*
     @Override
     public String toString() {
         return "macroLib: \n" + mcLib.toString();
-    }
+    }*/
 }

@@ -1,11 +1,13 @@
-AAA
-
-#NAME(&1,&2) {
-    sd &1
-    sa &2
-
+HELLO
+DEF MACRO BUT YOU WONT SEE
+#M(&1, &2){
+hey &1
+whatsup &2
 }
-BB
-
-$NAME(x,z ,e ,qw)
-aaa
+ONE MORE
+#N(&1){1 &1}
+FREE TEXT
+CALLS:
+$N(X, Y)
+$M(123, 321, 111, 222)
+THANK YOU
