@@ -55,8 +55,7 @@ public class MacroGenerator {
                             startLine = currentLine;
                             readMacros();
                         } catch (IllegalMacroDefinition e) {
-                            System.err.println(e.getMessage(macroDefOrCallToCheck, startLine));
-                            logStream.write(e.getMessage(macroDefOrCallToCheck, startLine));
+                            errorLogging(e.getMessage(macroDefOrCallToCheck, startLine));
                         }
                     }
                     else if((char)readChar == DOLLAR && prevReadChar == EOF) {
@@ -64,8 +63,7 @@ public class MacroGenerator {
                             startLine = currentLine;
                             callMacros();
                         } catch (IllegalMacroCall e) {
-                            System.err.println(e.getMessage(macroDefOrCallToCheck, startLine));
-                            logStream.write(e.getMessage(macroDefOrCallToCheck, startLine));
+                            errorLogging(e.getMessage(macroDefOrCallToCheck, startLine));
                         }
                     }
                     else{
@@ -76,6 +74,7 @@ public class MacroGenerator {
             } finally {
                 inputStream.close();
                 outputStream.close();
+                logStream.close();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -210,8 +209,7 @@ public class MacroGenerator {
                 }
             } catch (NotEnoughParameters e) {
 
-                System.err.println(e.getMessage(m.getName(), m.getNumberOfParameters(), paramsList.size(), MISSING_PARAMS_STRING, startLine));
-                logStream.write(e.getMessage(m.getName(), m.getNumberOfParameters(), paramsList.size(), MISSING_PARAMS_STRING, startLine));
+                errorLogging(e.getMessage(m.getName(), m.getNumberOfParameters(), paramsList.size(), MISSING_PARAMS_STRING, startLine));
 
                 for(int k = 0; k < mcNumberParameters; k++){
                     outputStream.write(freeText[k].toCharArray());
@@ -224,8 +222,7 @@ public class MacroGenerator {
                 }
             }
         } catch (MacrosNotFound e) {
-            System.err.println(e.getMessage(macroName, startLine));
-            logStream.write(e.getMessage(macroName, startLine));
+            errorLogging(e.getMessage(macroName, startLine));
         }
 
     }
@@ -240,18 +237,18 @@ public class MacroGenerator {
         }
     }
 
-    private void addMacrosToLib(String macroName, int numberIfParamiters, String[] freeText) {
+    private void addMacrosToLib(String macroName, int numberIfParamiters, String[] freeText) throws IOException {
         try {
             macLib.addMacro(macroName, numberIfParamiters, freeText);
         } catch (MacrosNameIsAlreadyUsed e){
-            System.err.println(e.getMessage(macroName, startLine));
+            errorLogging(e.getMessage(macroName, startLine));
         }
     }
 
-    private void checkIfAllMacrosesUsed(){
+    private void checkIfAllMacrosesUsed() throws IOException {
         List<Macro> unusedMacro = new ArrayList<Macro>(macLib.unusedMacroses());
         for(Macro m: unusedMacro){
-            System.err.println("Warning!: Macros <" + m.getName() + "> has been declared but never used!");
+            errorLogging("Warning!: Macros <" + m.getName() + "> has been declared but never used!");
         }
     }
 
@@ -266,7 +263,7 @@ public class MacroGenerator {
 
     private void errorLogging(String errorMessage) throws IOException {
         System.err.println(errorMessage);
-        logStream.write(errorMessage);
+        logStream.write(errorMessage + "\n");
     }
 
 }

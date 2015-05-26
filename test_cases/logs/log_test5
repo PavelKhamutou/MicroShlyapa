@@ -1,0 +1,7 @@
+Error!: Something wrong with macro definition. Line<2>:
+		#NAME(&1, &2){123 &1 321 &2)
+BB
+#NAME(&1){body &1}
+		
+Error!: Macros not found. Line<5>:
+		Macros: <NAME> not found in the library!

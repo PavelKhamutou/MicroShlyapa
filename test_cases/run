@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# compiling java src
+# javac -d out src/ecote/*.java src/ecote/Exceptions/*.java
+
+
+# running
+
+# java -cp ../out ecote.Main input/test output/test1 logs/log1
+
+out='out_'
+log='log_'
+
+for i in $(ls input) ; do
+	java -cp ../out ecote.Main input/$i output/$out$i logs/$log$i
+done
