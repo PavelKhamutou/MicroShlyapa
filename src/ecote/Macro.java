@@ -8,6 +8,7 @@ public class Macro {
     private String name;
     private int numberOfParameters;
     private String[] freeText;
+    private boolean isUsed = false;
 
     public Macro(String name, int numberOfParameters, String[] freeText) {
         this.name = name;
@@ -26,6 +27,10 @@ public class Macro {
     public String getName() {
         return name;
     }
+
+    public void setUsed() { isUsed = true; }
+
+    public boolean getUsed() { return isUsed; }
 
     @Override
     public String toString() {

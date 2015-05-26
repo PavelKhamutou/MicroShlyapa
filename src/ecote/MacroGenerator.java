@@ -19,7 +19,7 @@ public class MacroGenerator {
     private static final char ampersant = '&';
     private static final char COMMA = ',';
     private static final char EOF = '\n';
-    private static final String MISSING_PARAMS_STRING = "MISSING_PARAMETER_";
+    private static final String MISSING_PARAMS_STRING = "MISSING_PARAMETER";
 
 
     private static final MacroLib macLib = new MacroLib();
@@ -47,7 +47,7 @@ public class MacroGenerator {
                     if((char)readChar == HASH && prevReadChar == EOF){
                         readMacros();
                     }
-                    else if((char)readChar == dollar) {
+                    else if((char)readChar == dollar && prevReadChar == EOF) {
                         callMacros();
 
                     }
@@ -55,6 +55,7 @@ public class MacroGenerator {
                         outputStream.write(readChar);
                     }
                 } //end of while
+                checkIfAllMacrosesUsed();
             } finally {
                 inputStream.close();
                 outputStream.close();
@@ -122,29 +123,30 @@ public class MacroGenerator {
         try {
             Macro m = macLib.getMacros(macroName);
             String[] freeText = m.getFreeText();
+
             int mcNumberParameters = m.getNumberOfParameters();
             int callNumberParameters = paramsList.size();
 
             try {
-                int diff = countDifference(callNumberParameters, m.getNumberOfParameters());
-                for(int k = 0; k < callNumberParameters; k++){
+                int diff = countDifference(callNumberParameters, mcNumberParameters);
+                for(int k = 0, l = 0; k < callNumberParameters; k++, l++){
                     if(k >= mcNumberParameters){
-                        outputStream.write(freeText[k - diff].toCharArray());
+                        l = 0;
+                        outputStream.write(freeText[l].toCharArray());
                         outputStream.write(paramsList.get(k).toCharArray());
                     }
                     else {
-                        outputStream.write(freeText[k].toCharArray());
+                        outputStream.write(freeText[l].toCharArray());
                         outputStream.write(paramsList.get(k).toCharArray());
                     }
                 }
-            } catch (NotEnoughParamiters e) {
-                System.err.println("Error!: Not enough parameters:");
-                System.err.println("\t\tThe deffinition of macros <" + m.getName() + "> requires <" + m.getNumberOfParameters() + "> parameters");
-                System.err.println("\t\tbut <" + paramsList.size() + "> found. Missing parameters will be substituted with <" + MISSING_PARAMS_STRING + ">");
+            } catch (NotEnoughParameters e) {
+                System.err.println(e.getMessage(m.getName(), m.getNumberOfParameters(), paramsList.size(), MISSING_PARAMS_STRING));
+
                 for(int k = 0; k < mcNumberParameters; k++){
                     if(k >= callNumberParameters){
                         outputStream.write(freeText[k].toCharArray());
-                        outputStream.write((MISSING_PARAMS_STRING + k).toCharArray());
+                        outputStream.write((MISSING_PARAMS_STRING + "_#" + k).toCharArray());
                     }
                     else {
                         outputStream.write(freeText[k].toCharArray());
@@ -152,27 +154,34 @@ public class MacroGenerator {
                     }
                 }
             }
-        } catch (MacrosNotFound macrosNotFound) {
-            System.err.println("Error!: Macros not found:\n\t\tMacros: <" + macroName + "> not found in the library");
+        } catch (MacrosNotFound e) {
+            System.err.println(e.getMessage(macroName));
         }
 
     }
 
-    private int countDifference(int paramsFromCall, int paramsFromDeffinition) throws NotEnoughParamiters {
+    private int countDifference(int paramsFromCall, int paramsFromDeffinition) throws NotEnoughParameters {
         int difference = paramsFromCall - paramsFromDeffinition;
         if(difference < 0){
-            throw new NotEnoughParamiters();
+            throw new NotEnoughParameters();
         }
         else {
             return difference;
         }
     }
 
-    private void addMacrosToLib(String name, int numberIfParamiters, String[] freeText) {
+    private void addMacrosToLib(String macroName, int numberIfParamiters, String[] freeText) {
         try {
-            macLib.addMacro(name, numberIfParamiters, freeText);
+            macLib.addMacro(macroName, numberIfParamiters, freeText);
         } catch (MacrosNameIsAlreadyUsed e){
-            System.err.println("Warning!: Incorrect macro name:\n\t\t  <" + name + "> has been already used");
+            System.err.println(e.getMessage(macroName));
+        }
+    }
+
+    private void checkIfAllMacrosesUsed(){
+        List<Macro> unusedMacro = new ArrayList<Macro>(macLib.unusedMacroses());
+        for(Macro m: unusedMacro){
+            System.err.println("Warning!: Macros <" + m.getName() + "> has been declared but never used!");
         }
     }
 

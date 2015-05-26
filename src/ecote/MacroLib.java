@@ -24,6 +24,7 @@ public class MacroLib {
 
     public Macro getMacros(String name) throws MacrosNotFound {
         if(mcLib.containsKey(name)){
+            mcLib.get(name).setUsed();
             return mcLib.get(name);
         }
         else {
@@ -31,7 +32,15 @@ public class MacroLib {
         }
     }
 
-
+    public List<Macro> unusedMacroses(){
+        List<Macro> unused = new ArrayList<Macro>();
+        for(String key: mcLib.keySet()){
+            if(!mcLib.get(key).getUsed()){
+                unused.add(mcLib.get(key));
+            }
+        }
+        return unused;
+    }
 
     @Override
     public String toString() {
