@@ -20,7 +20,7 @@ public class MacroGenerator {
     private static final char AMPERSANT = '&';
     private static final char COMMA = ',';
     private static final char EOF = '\n';
-    private static final String MISSING_PARAMS_STRING = "MISSING_PARAMETER";
+    private static final String MISSING_PARAMS_STRING = " ";
 
     private String macroDefOrCallToCheck = "";
     private int currentLine = 1;
@@ -97,7 +97,10 @@ public class MacroGenerator {
 
         String freeTextParam = "";
         String name = "";
-
+        /*TODO
+            Solve problem if opening bracket is missing.
+            Write better while loops which will work with ascii bound of digits.
+         */
         while ((char)getChar() != OPENING_BRACKET){
             name += (char)readChar;
             createStringToCheckDefinition();
@@ -105,7 +108,10 @@ public class MacroGenerator {
         createStringToCheckDefinition();
 
 
-
+        /*TODO
+            Solve problem if closing bracket is missing.
+            Write code which will be able to find and save digits that are grater then 9.
+         */
 
         while ((char)getChar() != CLOSING_BRACKET){
             createStringToCheckDefinition();
@@ -116,14 +122,19 @@ public class MacroGenerator {
         }
         createStringToCheckDefinition();
 
-
+        /*TODO
+            Solve problem if opening curve bracket is missing.
+         */
 
         while((char)getChar() != OPENING_CURVE_BRACKET) {
             createStringToCheckDefinition();
         }
         createStringToCheckDefinition();
 
-
+        /*TODO
+            Solve problem if closing curve bracket is missing.
+            Write code which will be able to find and save digits that are grater then 9.
+         */
 
         while((char)getChar() != CLOSING_CURVE_BRACKET){
             createStringToCheckDefinition();
@@ -138,6 +149,10 @@ public class MacroGenerator {
             }
         }
         createStringToCheckDefinition();
+
+        /*TODO
+            Change regex such that is will be able to work if more then 9 parameters.
+         */
 
         //all checking starts here ->
         String regexForMacroDefinition = "#\\w+\\((\\s*(&[1-9])\\s*,?)+\\s*\\)\\s*\\{(\\s*\\w+\\s*&[1-9])+\\s*\\}";
@@ -162,6 +177,11 @@ public class MacroGenerator {
         String macroName = "";
         List<String> paramsList = new ArrayList<String>();
         String parameter = "";
+
+        /*TODO
+            All the same as in readMacros().
+         */
+
 
         while((char)getChar() != OPENING_BRACKET) {
             macroName += (char)readChar;
@@ -199,13 +219,27 @@ public class MacroGenerator {
             int callNumberParameters = paramsList.size();
 
             try {
-                countDifference(callNumberParameters, mcNumberParameters);
-                for(int k = 0, l = 0; k < callNumberParameters; k++, l++){
-                    if(l == mcNumberParameters){
-                        l = 0;
+
+                int startingPointIfCounterZero = countDifference(callNumberParameters, mcNumberParameters);
+                int counter = callNumberParameters % mcNumberParameters;
+                int startingPoint = callNumberParameters - counter;
+
+                for(int k = 0; k < mcNumberParameters; k++){
+                    outputStream.write(freeText[k].toCharArray());
+                    if(mcNumberParameters == callNumberParameters){
+                        outputStream.write(paramsList.get(k).toCharArray());
                     }
-                    outputStream.write(freeText[l].toCharArray());
-                    outputStream.write(paramsList.get(k).toCharArray());
+                    else if(counter == 0){
+                        outputStream.write(paramsList.get(startingPointIfCounterZero++).toCharArray());
+                    }
+                    else{
+                        if(startingPoint != callNumberParameters) {
+                            outputStream.write(paramsList.get(startingPoint++).toCharArray());
+                        }
+                        else {
+                            outputStream.write(paramsList.get(k).toCharArray());
+                        }
+                    }
                 }
             } catch (NotEnoughParameters e) {
 
@@ -214,7 +248,7 @@ public class MacroGenerator {
                 for(int k = 0; k < mcNumberParameters; k++){
                     outputStream.write(freeText[k].toCharArray());
                     if(k >= callNumberParameters){
-                        outputStream.write((MISSING_PARAMS_STRING + "_#" + k).toCharArray());
+                        outputStream.write((MISSING_PARAMS_STRING).toCharArray());
                     }
                     else {
                         outputStream.write(paramsList.get(k).toCharArray());
@@ -227,14 +261,12 @@ public class MacroGenerator {
 
     }
 
-    private int countDifference(int paramsFromCall, int paramsFromDeffinition) throws NotEnoughParameters {
-        int difference = paramsFromCall - paramsFromDeffinition;
+    private int countDifference(int paramsFromCall, int paramsFromDefinition) throws NotEnoughParameters {
+        int difference = paramsFromCall - paramsFromDefinition;
         if(difference < 0){
             throw new NotEnoughParameters();
         }
-        else {
-            return difference;
-        }
+        return difference;
     }
 
     private void addMacrosToLib(String macroName, int numberIfParamiters, String[] freeText) throws IOException {
