@@ -16,6 +16,7 @@ public class Main {
             System.exit(1);
         }*/
 
+
         /*TODO
             Write correct test for all test cases.
          */
@@ -26,10 +27,10 @@ public class Main {
         }catch (ArrayIndexOutOfBoundsException e){
             System.err.println("Please give input file names!");
         }catch (RuntimeException e){
-            System.err.println("Please provide correct file names!");
+            //System.out.println(e.getMessage());
         }
 
-        System.out.println("Finish!");
+        //System.out.println("Finish!");
 
     }
 

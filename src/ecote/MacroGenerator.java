@@ -11,15 +11,18 @@ public class MacroGenerator {
     private String outputFile;
     private String logFile;
 
-    private static final char HASH = '#';
-    private static final char OPENING_BRACKET = '(';
-    private static final char CLOSING_BRACKET = ')';
-    private static final char OPENING_CURVE_BRACKET = '{';
-    private static final char CLOSING_CURVE_BRACKET = '}';
-    private static final char DOLLAR = '$';
-    private static final char AMPERSANT = '&';
-    private static final char COMMA = ',';
-    private static final char EOF = '\n';
+    private static final char HASH = 35;                        // #
+    private static final char OPENING_BRACKET = 40;             // (
+    private static final char CLOSING_BRACKET = 41;             // )
+    private static final char OPENING_CURVE_BRACKET = 123;      // {
+    private static final char CLOSING_CURVE_BRACKET = 125;      // }
+    private static final char DOLLAR = 36;                      // $
+    private static final char AMPERSAND = 38;                   // &
+    private static final char COMMA = 44;                       // ,
+    private static final char EOL = 10;                         // \n
+    private static final char UNDERSCORE = 95;                  // _
+    private static final char SPACE = 32;                       // ' '
+
     private static final String MISSING_PARAMS_STRING = " ";
 
     private String macroDefOrCallToCheck = "";
@@ -50,7 +53,7 @@ public class MacroGenerator {
 
             try {
                 while(getChar() != -1) {
-                    if((char)readChar == HASH && prevReadChar == EOF){
+                    if(readChar == HASH && prevReadChar == EOL){
                         try {
                             startLine = currentLine;
                             readMacros();
@@ -58,7 +61,7 @@ public class MacroGenerator {
                             errorLogging(e.getMessage(macroDefOrCallToCheck, startLine));
                         }
                     }
-                    else if((char)readChar == DOLLAR && prevReadChar == EOF) {
+                    else if(readChar == DOLLAR && prevReadChar == EOL) {
                         try {
                             startLine = currentLine;
                             callMacros();
@@ -77,6 +80,7 @@ public class MacroGenerator {
                 logStream.close();
             }
         } catch (IOException e) {
+            System.err.println(e.getMessage());
             throw new RuntimeException(e);
         }
 
@@ -86,6 +90,17 @@ public class MacroGenerator {
     private void createStringToCheckDefinition(){
         macroDefOrCallToCheck += (char)readChar;
     }
+
+    private void finishCopingText() throws IOException {
+        while(getChar() != CLOSING_CURVE_BRACKET){
+            if(readChar == -1){
+                throw new IOException("Error: File reaches its end:\n\t\tThere ware not found any \'}\' for macrodefinition in line <" + startLine + ">.");
+            }
+            createStringToCheckDefinition();
+        }
+        createStringToCheckDefinition();
+    }
+
 
     private void readMacros() throws IOException, IllegalMacroDefinition {
 
@@ -97,37 +112,45 @@ public class MacroGenerator {
 
         String freeTextParam = "";
         String name = "";
-        /*TODO
-            Solve problem if opening bracket is missing.
-            Write better while loops which will work with ascii bound of digits.
-         */
-        while ((char)getChar() != OPENING_BRACKET){
-            name += (char)readChar;
+
+
+        while (getChar() != OPENING_BRACKET) {
             createStringToCheckDefinition();
+            if(!validCharForName()){
+                finishCopingText();
+                throw new IllegalMacroDefinition("Illegal name.");
+            }
+            name += (char)readChar;
         }
         createStringToCheckDefinition();
 
 
         /*TODO
-            Solve problem if closing bracket is missing.
             Write code which will be able to find and save digits that are grater then 9.
          */
 
-        while ((char)getChar() != CLOSING_BRACKET){
+        while (getChar() != CLOSING_BRACKET){
             createStringToCheckDefinition();
-            if((char)readChar == AMPERSANT) {
+
+            if(!validCharForParameterDefinition()){
+                finishCopingText();
+                throw new IllegalMacroDefinition("Illegal parameter list.");
+            }
+
+            if(readChar == AMPERSAND) {
                 defParamValue.add(Character.getNumericValue(getChar()));
                 createStringToCheckDefinition();
             }
         }
         createStringToCheckDefinition();
 
-        /*TODO
-            Solve problem if opening curve bracket is missing.
-         */
 
-        while((char)getChar() != OPENING_CURVE_BRACKET) {
+        while(getChar() != OPENING_CURVE_BRACKET) {
             createStringToCheckDefinition();
+            if(!(readChar == SPACE || readChar == EOL)){
+                finishCopingText();
+                throw new IllegalMacroDefinition("Probable causes:\n\t\t\tMissing \'{\'.\n\t\t\tThere is text between \')\' and \'{\'.");
+            }
         }
         createStringToCheckDefinition();
 
@@ -136,9 +159,12 @@ public class MacroGenerator {
             Write code which will be able to find and save digits that are grater then 9.
          */
 
-        while((char)getChar() != CLOSING_CURVE_BRACKET){
+        while(getChar() != CLOSING_CURVE_BRACKET){
             createStringToCheckDefinition();
-            if((char)readChar == AMPERSANT){
+            if(!validCharForName() && readChar != AMPERSAND && readChar != SPACE && readChar != EOL){
+                System.out.println("shit" + (char)readChar);
+            }
+            if(readChar == AMPERSAND){
                 freeText.add(freeTextParam);
                 freeTextParam = "";
                 bodyParamValue.add(Character.getNumericValue(getChar()));
@@ -284,12 +310,31 @@ public class MacroGenerator {
         }
     }
 
+    private boolean validCharForName(){
+        /*
+            a-zA-Z_0-9
+            ASCII:
+                65 - 90 => [A-Z]
+                97 - 122 => [a-z]
+                48 - 57 => [0-9]
+         */
+        return ((readChar >= 65 && readChar <= 90) || (readChar >= 97 && readChar <= 122) ||
+                (readChar >= 48 && readChar <= 57) || readChar == UNDERSCORE);
+    }
+
+    private boolean validCharForParameterDefinition(){
+        // &, 0-9
+        //System.out.println(readChar);
+        return (readChar == SPACE || readChar == AMPERSAND || readChar == COMMA || readChar == EOL || (readChar >= 48 && readChar <= 57));
+    }
+
     private int getChar() throws IOException {
         prevReadChar = readChar;
 
         if((char)prevReadChar == '\n'){
             currentLine++;
         }
+        //System.out.println(readChar);
         return (readChar = inputStream.read());
     }
 

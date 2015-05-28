@@ -1,7 +1,8 @@
 HELLO
-#M(&1, &2, &3) {one &1 two &2 tree &3}
+#NAMe_E23(&1, &2) {one &1 two &2 }
 GOD
-$M(X, Y)
+
+$NAMe_E23(X, Y)
 
 
 
