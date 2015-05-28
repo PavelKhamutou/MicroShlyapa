@@ -1,8 +1,8 @@
 HELLO
-#NAMe_E23(&1, &2) {one &1 two &2 }
+#NAME(&1, &21 ) {one &1 two &21}
 GOD
 
-$NAMe_E23(X, Y)
+$NAME(X, Y)
 
 
 

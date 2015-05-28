@@ -3,6 +3,7 @@ import ecote.Exceptions.*;
 
 import java.util.*;
 import java.io.*;
+import java.lang.Math;
 
 
 public class MacroGenerator {
@@ -128,6 +129,7 @@ public class MacroGenerator {
         /*TODO
             Write code which will be able to find and save digits that are grater then 9.
          */
+        List<Integer> parameterAsDigit = new ArrayList<Integer>();
 
         while (getChar() != CLOSING_BRACKET){
             createStringToCheckDefinition();
@@ -138,8 +140,30 @@ public class MacroGenerator {
             }
 
             if(readChar == AMPERSAND) {
-                defParamValue.add(Character.getNumericValue(getChar()));
-                createStringToCheckDefinition();
+                /*while(Character.isDigit(getChar())){
+                    System.out.println((char)readChar);
+
+                }*/
+
+                /*defParamValue.add(Character.getNumericValue(getChar()));
+                createStringToCheckDefinition();*/
+                while(Character.isDigit(getChar())){
+                    parameterAsDigit.add(Character.getNumericValue(readChar));
+                }
+
+                if(readChar == SPACE || readChar == EOL || readChar == COMMA){
+                    createStringToCheckDefinition();
+                    int power = 0;
+                    int digit = 0;
+                    for(int i = parameterAsDigit.size() - 1; i > -1; i--){
+
+                        digit = digit + parameterAsDigit.get(i) * (int)Math.pow(10, power++);
+
+                    }
+                    defParamValue.add(digit);
+                    //System.out.println(defParamValue.toString());
+                    parameterAsDigit.clear();
+                }
             }
         }
         createStringToCheckDefinition();
@@ -162,9 +186,14 @@ public class MacroGenerator {
         while(getChar() != CLOSING_CURVE_BRACKET){
             createStringToCheckDefinition();
             if(!validCharForName() && readChar != AMPERSAND && readChar != SPACE && readChar != EOL){
-                System.out.println("shit" + (char)readChar);
+                finishCopingText();
+                throw new IllegalMacroDefinition("Something wring in body block.");
             }
             if(readChar == AMPERSAND){
+                if(prevReadChar != SPACE && prevReadChar != EOL){
+                    finishCopingText();
+                    throw new IllegalMacroDefinition("Using \'&\' in improper place. It must have space before and digit after.");
+                }
                 freeText.add(freeTextParam);
                 freeTextParam = "";
                 bodyParamValue.add(Character.getNumericValue(getChar()));
@@ -174,14 +203,19 @@ public class MacroGenerator {
                 freeTextParam += (char)readChar;
             }
         }
+
         createStringToCheckDefinition();
+        if(!freeTextParam.matches("\\s*")){
+            errorLogging("Warning!: In macrodefinition <" + name + "> line <" + startLine + ">:\n\t\tFree text <" + freeTextParam + "> after last parameter will be ignored!");
+        }
+
 
         /*TODO
             Change regex such that is will be able to work if more then 9 parameters.
          */
 
         //all checking starts here ->
-        String regexForMacroDefinition = "#\\w+\\((\\s*(&[1-9])\\s*,?)+\\s*\\)\\s*\\{(\\s*\\w+\\s*&[1-9])+\\s*\\}";
+        /*String regexForMacroDefinition = "#\\w+\\((\\s*(&[1-9])\\s*,?)+\\s*\\)\\s*\\{(\\s*\\w+\\s*&[1-9])+\\s*\\}";
         if(!macroDefOrCallToCheck.matches(regexForMacroDefinition) || defParamValue.size() != bodyParamValue.size()){
             throw new IllegalMacroDefinition();
         }
@@ -191,7 +225,7 @@ public class MacroGenerator {
                     throw new IllegalMacroDefinition("Parameter list is not equal in body and definition!");
                 }
             }
-        }
+        }*/
 
         addMacrosToLib(name, defParamValue.size(), freeText.toArray(new String[freeText.size()]));
 
