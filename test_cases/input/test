@@ -1,8 +1,9 @@
 HELLO
-#NAME(&1, &2) {one &1 two &2 }
+#NAME( &1,&2,  &3 ) {one &1
+two &2                  tree &3}
 GOD
 
-$NAME(X,Y)
+$NAME(X,Y, u)
 
 
 

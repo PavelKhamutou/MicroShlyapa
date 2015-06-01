@@ -88,7 +88,7 @@ public class MacroGenerator {
     }
 
 
-    private void createStringToCheckDefinition(){
+    private void addCharToLogString(){
         macroDefOrCallToCheck += (char)readChar;
     }
 
@@ -97,9 +97,9 @@ public class MacroGenerator {
             if(readChar == -1){
                 throw new IOException("Error: File reaches its end:\n\t\tThere ware not found any \'}\' for macrodefinition in line <" + startLine + ">.");
             }
-            createStringToCheckDefinition();
+            addCharToLogString();
         }
-        createStringToCheckDefinition();
+        addCharToLogString();
     }
 
 
@@ -110,20 +110,19 @@ public class MacroGenerator {
         List<Integer> defParamValue = new ArrayList<Integer>();
         List<Integer> bodyParamValue = new ArrayList<Integer>();
         List<String> freeText = new ArrayList<String>();
-
         String freeTextParam = "";
         String name = "";
 
 
         while (getChar() != OPENING_BRACKET) {
-            createStringToCheckDefinition();
+            addCharToLogString();
             if(!validCharForName()){
                 finishCopingText();
                 throw new IllegalMacroDefinition("Illegal name.");
             }
             name += (char)readChar;
         }
-        createStringToCheckDefinition();
+        addCharToLogString();
 
 
         /*TODO
@@ -132,53 +131,65 @@ public class MacroGenerator {
         List<Integer> parameterAsDigit = new ArrayList<Integer>();
 
         while (getChar() != CLOSING_BRACKET){
-            createStringToCheckDefinition();
+            addCharToLogString();
 
-            if(!validCharForParameterDefinition()){
+            if(readChar != SPACE && readChar != EOL && readChar != AMPERSAND){
                 finishCopingText();
                 throw new IllegalMacroDefinition("Illegal parameter list.");
             }
 
             if(readChar == AMPERSAND) {
                 while(Character.isDigit(getChar())){
-                    createStringToCheckDefinition();
+                    addCharToLogString();
                     parameterAsDigit.add(Character.getNumericValue(readChar));
                 }
 
-                createStringToCheckDefinition();
-                if(readChar == SPACE || readChar == EOL || readChar == COMMA || readChar == CLOSING_BRACKET){
+                if(parameterAsDigit.size() == 0){
+                    addCharToLogString();
+                    finishCopingText();
+                    throw new IllegalMacroDefinition("Ampersand is not followed by digits.");
+                }
 
-                    int power = 0;
-                    int digit = 0;
-                    for(int i = parameterAsDigit.size() - 1; i > -1; i--){
 
-                        digit = digit + parameterAsDigit.get(i) * (int)Math.pow(10, power++);
+                defParamValue.add(getDigits(parameterAsDigit));
+                parameterAsDigit.clear();
 
-                    }
-                    defParamValue.add(digit);
-                    parameterAsDigit.clear();
-
-                    if(readChar == CLOSING_BRACKET){
+                do {
+                    if(readChar == COMMA){
                         break;
                     }
+
+                    if (readChar == CLOSING_BRACKET){
+                        break;
+                    }
+                    addCharToLogString();
+                } while (getChar() == SPACE || readChar == EOL);
+
+
+                addCharToLogString();
+
+                if(readChar == CLOSING_BRACKET){
+                    break;
                 }
-                else{
+
+                if(readChar != COMMA){
                     finishCopingText();
-                    throw new IllegalMacroDefinition("Using wrong definition structure.");
+                    throw new IllegalMacroDefinition("Comma separator is not found!");
                 }
-            }
+
+            } // end of read==&
         }
-        createStringToCheckDefinition();
+
 
 
         while(getChar() != OPENING_CURVE_BRACKET) {
-            createStringToCheckDefinition();
+            addCharToLogString();
             if(!(readChar == SPACE || readChar == EOL)){
                 finishCopingText();
                 throw new IllegalMacroDefinition("Probable causes:\n\t\t\tMissing \'{\'.\n\t\t\tThere is text between \')\' and \'{\'.");
             }
         }
-        createStringToCheckDefinition();
+        addCharToLogString();
 
         /*TODO
             Solve problem if closing curve bracket is missing.
@@ -186,7 +197,7 @@ public class MacroGenerator {
          */
 
         while(getChar() != CLOSING_CURVE_BRACKET){
-            createStringToCheckDefinition();
+            addCharToLogString();
             if(!validCharForName() && readChar != AMPERSAND && readChar != SPACE && readChar != EOL){
                 finishCopingText();
                 throw new IllegalMacroDefinition("Something wrong in body block.");
@@ -200,19 +211,21 @@ public class MacroGenerator {
                 freeTextParam = "";
 
                 while(Character.isDigit(getChar())){
-                    createStringToCheckDefinition();
+                    addCharToLogString();
                     parameterAsDigit.add(Character.getNumericValue(readChar));
                 }
 
-                createStringToCheckDefinition();
+                if(parameterAsDigit.size() == 0){
+                    addCharToLogString();
+                    finishCopingText();
+                    throw new IllegalMacroDefinition("Ampersand is not followed by digits.");
+                }
+
+                addCharToLogString();
 
                 if(readChar == SPACE || readChar == EOL || readChar == CLOSING_CURVE_BRACKET){
-                    int power = 0;
-                    int digit = 0;
-                    for(int i = parameterAsDigit.size() - 1; i > -1; i--){
-                        digit = digit + parameterAsDigit.get(i) * (int)Math.pow(10, power++);
-                    }
-                    bodyParamValue.add(digit);
+
+                    bodyParamValue.add(getDigits(parameterAsDigit));
                     parameterAsDigit.clear();
 
                     if(readChar == CLOSING_CURVE_BRACKET){
@@ -231,7 +244,7 @@ public class MacroGenerator {
             }
         }
 
-        createStringToCheckDefinition();
+        addCharToLogString();
         if(!freeTextParam.matches("\\s*")){
             errorLogging("Warning!: In macrodefinition <" + name + "> line <" + startLine + ">:\n\t\tFree text <" + freeTextParam + "> after last parameter will be ignored!");
         }
@@ -254,6 +267,19 @@ public class MacroGenerator {
     }
 
 
+
+    private int getDigits(List<Integer> list){
+        int power = 0;
+        int digit = 0;
+        for(int i = list.size() - 1; i > -1; i--){
+            digit = digit + list.get(i) * (int)Math.pow(10, power++);
+        }
+        return digit;
+    }
+
+
+    //TODO redo callMacros function.
+
     private void callMacros() throws IOException, IllegalMacroCall {
         macroDefOrCallToCheck = Character.toString((char)readChar);
         String macroName = "";
@@ -267,14 +293,14 @@ public class MacroGenerator {
 
         while((char)getChar() != OPENING_BRACKET) {
             macroName += (char)readChar;
-            createStringToCheckDefinition();
+            addCharToLogString();
         }
-        createStringToCheckDefinition();
+        addCharToLogString();
 
 
 
         while((char)getChar() != CLOSING_BRACKET) {
-            createStringToCheckDefinition();
+            addCharToLogString();
             if((char)readChar == COMMA){
                 paramsList.add(parameter);
                 parameter = "";
@@ -283,7 +309,7 @@ public class MacroGenerator {
                 parameter += (char)readChar;
             }
         }
-        createStringToCheckDefinition();
+        addCharToLogString();
         paramsList.add(parameter);
 
 
@@ -378,11 +404,6 @@ public class MacroGenerator {
                 (readChar >= 48 && readChar <= 57) || readChar == UNDERSCORE);
     }
 
-    private boolean validCharForParameterDefinition(){
-        // &, 0-9
-        //System.out.println(readChar);
-        return (readChar == SPACE || readChar == AMPERSAND || readChar == COMMA || readChar == EOL || (readChar >= 48 && readChar <= 57));
-    }
 
     private int getChar() throws IOException {
         prevReadChar = readChar;
