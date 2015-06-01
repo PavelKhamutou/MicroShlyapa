@@ -140,19 +140,14 @@ public class MacroGenerator {
             }
 
             if(readChar == AMPERSAND) {
-                /*while(Character.isDigit(getChar())){
-                    System.out.println((char)readChar);
-
-                }*/
-
-                /*defParamValue.add(Character.getNumericValue(getChar()));
-                createStringToCheckDefinition();*/
                 while(Character.isDigit(getChar())){
+                    createStringToCheckDefinition();
                     parameterAsDigit.add(Character.getNumericValue(readChar));
                 }
 
-                if(readChar == SPACE || readChar == EOL || readChar == COMMA){
-                    createStringToCheckDefinition();
+                createStringToCheckDefinition();
+                if(readChar == SPACE || readChar == EOL || readChar == COMMA || readChar == CLOSING_BRACKET){
+
                     int power = 0;
                     int digit = 0;
                     for(int i = parameterAsDigit.size() - 1; i > -1; i--){
@@ -161,8 +156,15 @@ public class MacroGenerator {
 
                     }
                     defParamValue.add(digit);
-                    //System.out.println(defParamValue.toString());
                     parameterAsDigit.clear();
+
+                    if(readChar == CLOSING_BRACKET){
+                        break;
+                    }
+                }
+                else{
+                    finishCopingText();
+                    throw new IllegalMacroDefinition("Using wrong definition structure.");
                 }
             }
         }
@@ -187,7 +189,7 @@ public class MacroGenerator {
             createStringToCheckDefinition();
             if(!validCharForName() && readChar != AMPERSAND && readChar != SPACE && readChar != EOL){
                 finishCopingText();
-                throw new IllegalMacroDefinition("Something wring in body block.");
+                throw new IllegalMacroDefinition("Something wrong in body block.");
             }
             if(readChar == AMPERSAND){
                 if(prevReadChar != SPACE && prevReadChar != EOL){
@@ -196,8 +198,33 @@ public class MacroGenerator {
                 }
                 freeText.add(freeTextParam);
                 freeTextParam = "";
-                bodyParamValue.add(Character.getNumericValue(getChar()));
+
+                while(Character.isDigit(getChar())){
+                    createStringToCheckDefinition();
+                    parameterAsDigit.add(Character.getNumericValue(readChar));
+                }
+
                 createStringToCheckDefinition();
+
+                if(readChar == SPACE || readChar == EOL || readChar == CLOSING_CURVE_BRACKET){
+                    int power = 0;
+                    int digit = 0;
+                    for(int i = parameterAsDigit.size() - 1; i > -1; i--){
+                        digit = digit + parameterAsDigit.get(i) * (int)Math.pow(10, power++);
+                    }
+                    bodyParamValue.add(digit);
+                    parameterAsDigit.clear();
+
+                    if(readChar == CLOSING_CURVE_BRACKET){
+                        break;
+                    }
+                    freeTextParam += (char)readChar;
+                }
+                else{
+                    finishCopingText();
+                    throw new IllegalMacroDefinition("Using wrong body structure.");
+                }
+
             }
             else {
                 freeTextParam += (char)readChar;
@@ -210,22 +237,17 @@ public class MacroGenerator {
         }
 
 
-        /*TODO
-            Change regex such that is will be able to work if more then 9 parameters.
-         */
-
-        //all checking starts here ->
-        /*String regexForMacroDefinition = "#\\w+\\((\\s*(&[1-9])\\s*,?)+\\s*\\)\\s*\\{(\\s*\\w+\\s*&[1-9])+\\s*\\}";
-        if(!macroDefOrCallToCheck.matches(regexForMacroDefinition) || defParamValue.size() != bodyParamValue.size()){
-            throw new IllegalMacroDefinition();
+        if(defParamValue.size() != bodyParamValue.size()){
+            throw new IllegalMacroDefinition("Parameter list is not equal.");
         }
         else {
             for(int i = 0; i < defParamValue.size(); i++){
                 if(!defParamValue.get(i).equals(bodyParamValue.get(i))) {
-                    throw new IllegalMacroDefinition("Parameter list is not equal in body and definition!");
+                    throw new IllegalMacroDefinition("Parameter's values are not equal in body and definition! Definition: "
+                            + defParamValue.toString() + " Body: " + bodyParamValue.toString());
                 }
             }
-        }*/
+        }
 
         addMacrosToLib(name, defParamValue.size(), freeText.toArray(new String[freeText.size()]));
 
