@@ -23,6 +23,7 @@ public class MacroGenerator {
     private static final char EOL = 10;                         // \n
     private static final char UNDERSCORE = 95;                  // _
     private static final char SPACE = 32;                       // ' '
+    //private static final char DASH = 45;                        // -
 
     private static final String MISSING_PARAMS_STRING = " ";
 
@@ -32,7 +33,7 @@ public class MacroGenerator {
     private static final MacroLib macLib = new MacroLib();
 
     private int readChar;
-    private int prevReadChar;
+    private int prevReadChar = 0;
 
     FileReader inputStream = null;
     FileWriter outputStream = null;
@@ -71,6 +72,9 @@ public class MacroGenerator {
                         }
                     }
                     else{
+                        if(keyChars() || readChar == AMPERSAND){
+                            errorLogging("Warning!: The key character \'"+(char)readChar+"\' is used in free text in line <" + currentLine + ">.");
+                        }
                         outputStream.write(readChar);
                     }
                 } //end of while
@@ -81,7 +85,7 @@ public class MacroGenerator {
                 logStream.close();
             }
         } catch (IOException e) {
-            System.err.println(e.getMessage());
+            //System.err.println(e.getMessage());
             throw new RuntimeException(e);
         }
 
@@ -92,15 +96,6 @@ public class MacroGenerator {
         macroDefOrCallToCheck += (char)readChar;
     }
 
-    private void finishCopingText() throws IOException {
-        while(getChar() != CLOSING_CURVE_BRACKET){
-            if(readChar == -1){
-                throw new IOException("Error: File reaches its end:\n\t\tThere ware not found any \'}\' for macrodefinition in line <" + startLine + ">.");
-            }
-            addCharToLogString();
-        }
-        addCharToLogString();
-    }
 
 
     private void readMacros() throws IOException, IllegalMacroDefinition {
@@ -116,26 +111,30 @@ public class MacroGenerator {
 
         while (getChar() != OPENING_BRACKET) {
             addCharToLogString();
+            if(readChar == EOL){
+                throw new IllegalMacroDefinition("You must not have EOL in macro name.");
+            }
             if(!validCharForName()){
-                finishCopingText();
-                throw new IllegalMacroDefinition("Illegal name.");
+                char tmp = (char)readChar;
+                finishCopingDefinition();
+                throw new IllegalMacroDefinition("Illegal name. Possible causes: \n\t\t\t1) You have forgotten opening bracket.\n\t\t\t2) You have used improper character \'" + tmp +
+                        "\'.\n" + "\t\tList of proper characters: [a-z][A-Z][0-9][_]");
             }
             name += (char)readChar;
         }
         addCharToLogString();
 
 
-        /*TODO
-            Write code which will be able to find and save digits that are grater then 9.
-         */
+
         List<Integer> parameterAsDigit = new ArrayList<Integer>();
 
         while (getChar() != CLOSING_BRACKET){
             addCharToLogString();
 
             if(readChar != SPACE && readChar != EOL && readChar != AMPERSAND){
-                finishCopingText();
-                throw new IllegalMacroDefinition("Illegal parameter list.");
+                char tmp = (char)readChar;
+                finishCopingDefinition();
+                throw new IllegalMacroDefinition("Illegal parameter list. Improper character: \'" + tmp + "\'.");
             }
 
             if(readChar == AMPERSAND) {
@@ -146,13 +145,23 @@ public class MacroGenerator {
 
                 if(parameterAsDigit.size() == 0){
                     addCharToLogString();
-                    finishCopingText();
-                    throw new IllegalMacroDefinition("Ampersand is not followed by digits.");
+                    char tmp = (char)readChar;
+                    finishCopingDefinition();
+                    throw new IllegalMacroDefinition("Ampersand is not followed by digits. Instead it is followed by \'" + tmp + "\'.");
                 }
 
 
                 defParamValue.add(getDigits(parameterAsDigit));
                 parameterAsDigit.clear();
+
+
+                if(readChar != SPACE && readChar != EOL && readChar != COMMA && readChar != CLOSING_BRACKET){
+                    addCharToLogString();
+                    char tmp = (char)readChar;
+                    finishCopingDefinition();
+                    throw new IllegalMacroDefinition("Illegal character in definition: \'" + tmp + "\'\n\t\t\'&\' may be followed by space, comma or EOL.\n\t\t" +
+                            "Possible cause: You have forgotten \')\'.");
+                }
 
                 do {
                     if(readChar == COMMA){
@@ -162,6 +171,8 @@ public class MacroGenerator {
                     if (readChar == CLOSING_BRACKET){
                         break;
                     }
+
+
                     addCharToLogString();
                 } while (getChar() == SPACE || readChar == EOL);
 
@@ -172,9 +183,15 @@ public class MacroGenerator {
                     break;
                 }
 
+                if(readChar != COMMA && readChar == OPENING_CURVE_BRACKET){
+                    finishCopingDefinition();
+                    throw new IllegalMacroDefinition("There is no closing bracket.");
+                }
+
                 if(readChar != COMMA){
-                    finishCopingText();
-                    throw new IllegalMacroDefinition("Comma separator is not found!");
+                    char tmp = (char)readChar;
+                    finishCopingDefinition();
+                    throw new IllegalMacroDefinition("Comma separator is not found! Instead \'" + tmp + "\' is found.");
                 }
 
             } // end of read==&
@@ -185,27 +202,29 @@ public class MacroGenerator {
         while(getChar() != OPENING_CURVE_BRACKET) {
             addCharToLogString();
             if(!(readChar == SPACE || readChar == EOL)){
-                finishCopingText();
+                finishCopingDefinition();
                 throw new IllegalMacroDefinition("Probable causes:\n\t\t\tMissing \'{\'.\n\t\t\tThere is text between \')\' and \'{\'.");
             }
         }
         addCharToLogString();
 
-        /*TODO
-            Solve problem if closing curve bracket is missing.
-            Write code which will be able to find and save digits that are grater then 9.
-         */
 
         while(getChar() != CLOSING_CURVE_BRACKET){
+            if(readChar == -1){
+                errorLogging("Error: File reaches its end:\n\t\tThere ware not found any \'}\' for macrodefinition in line <" + startLine + ">.");
+                throw new IOException("Error: File reaches its end:\n\t\tThere ware not found any \'}\' for macrodefinition in line <" + startLine + ">.");
+            }
             addCharToLogString();
-            if(!validCharForName() && readChar != AMPERSAND && readChar != SPACE && readChar != EOL){
-                finishCopingText();
-                throw new IllegalMacroDefinition("Something wrong in body block.");
+            //if(!validCharForName() && readChar != AMPERSAND && readChar != SPACE && readChar != EOL){
+            if(keyChars()){
+                char tmp = (char)readChar;
+                finishCopingDefinition();
+                throw new IllegalMacroDefinition("Illegal character: " + tmp);
             }
             if(readChar == AMPERSAND){
                 if(prevReadChar != SPACE && prevReadChar != EOL){
-                    finishCopingText();
-                    throw new IllegalMacroDefinition("Using \'&\' in improper place. It must have space before and digit after.");
+                    finishCopingDefinition();
+                    throw new IllegalMacroDefinition("Using \'&\' in improper place. It must have space/EOL before and digit after.");
                 }
                 freeText.add(freeTextParam);
                 freeTextParam = "";
@@ -217,11 +236,12 @@ public class MacroGenerator {
 
                 if(parameterAsDigit.size() == 0){
                     addCharToLogString();
-                    finishCopingText();
-                    throw new IllegalMacroDefinition("Ampersand is not followed by digits.");
+                    char tmp = (char)readChar;
+                    finishCopingDefinition();
+                    throw new IllegalMacroDefinition("Ampersand is not followed by digits. Instead it is followed by \'" + tmp + "\'.");
                 }
 
-                addCharToLogString();
+
 
                 if(readChar == SPACE || readChar == EOL || readChar == CLOSING_CURVE_BRACKET){
 
@@ -231,11 +251,14 @@ public class MacroGenerator {
                     if(readChar == CLOSING_CURVE_BRACKET){
                         break;
                     }
+                    addCharToLogString();
                     freeTextParam += (char)readChar;
                 }
                 else{
-                    finishCopingText();
-                    throw new IllegalMacroDefinition("Using wrong body structure.");
+                    addCharToLogString();
+                    char tmp = (char)readChar;
+                    finishCopingDefinition();
+                    throw new IllegalMacroDefinition("Using wrong body structure. After \'&\' must be a space/EOL but you have: \'"+tmp+"\'");
                 }
 
             }
@@ -256,7 +279,7 @@ public class MacroGenerator {
         else {
             for(int i = 0; i < defParamValue.size(); i++){
                 if(!defParamValue.get(i).equals(bodyParamValue.get(i))) {
-                    throw new IllegalMacroDefinition("Parameter's values are not equal in body and definition! Definition: "
+                    throw new IllegalMacroDefinition("Parameter's values are not equal in the body and the definition! Definition: "
                             + defParamValue.toString() + " Body: " + bodyParamValue.toString());
                 }
             }
@@ -278,7 +301,6 @@ public class MacroGenerator {
     }
 
 
-    //TODO redo callMacros function.
 
     private void callMacros() throws IOException, IllegalMacroCall {
         macroDefOrCallToCheck = Character.toString((char)readChar);
@@ -286,26 +308,40 @@ public class MacroGenerator {
         List<String> paramsList = new ArrayList<String>();
         String parameter = "";
 
-        /*TODO
-            All the same as in readMacros().
-         */
 
 
-        while((char)getChar() != OPENING_BRACKET) {
-            macroName += (char)readChar;
+        while(getChar() != OPENING_BRACKET) {
             addCharToLogString();
+            if(!validCharForName()){
+                char tmp = (char)readChar;
+                finishCopingCall();
+                throw new IllegalMacroCall("Illegal name. Possible causes:\n\t\t\t1) You have forgotten opening bracket.\n\t\t\t2) You have used improper character \'" + tmp +
+                "\'.\n" + "\t\tList of proper characters: [a-z][A-Z][0-9][_]");
+            }
+            macroName += (char)readChar;
+
         }
         addCharToLogString();
 
 
 
-        while((char)getChar() != CLOSING_BRACKET) {
+        while(getChar() != CLOSING_BRACKET) {
+            if(readChar == -1){
+                errorLogging("Error: File reaches its end:\n\t\tThere ware not found any \')\' for macrocall in line <" + startLine + ">. \n\t\t" + macroDefOrCallToCheck);
+                throw new IOException("Error: File reaches its end:\n\t\tThere ware not found any \')\' for macrocall in line <" + startLine + ">. \n\t\t" + macroDefOrCallToCheck);
+            }
             addCharToLogString();
-            if((char)readChar == COMMA){
+            if(readChar == COMMA){
                 paramsList.add(parameter);
                 parameter = "";
             }
             else{
+                //if(!validCharForName() && readChar != SPACE && readChar != EOL){
+                if(keyChars()){
+                    char tmp = (char)readChar;
+                    finishCopingCall();
+                    throw new IllegalMacroCall("Illegal character in macrocall: \'" + tmp + "\'.");
+                }
                 parameter += (char)readChar;
             }
         }
@@ -313,11 +349,7 @@ public class MacroGenerator {
         paramsList.add(parameter);
 
 
-        String regexForMacroCall = "\\$\\w+\\(\\s*(\\w*\\s*,?)+\\s*\\)";
 
-        if(!macroDefOrCallToCheck.matches(regexForMacroCall)){
-            throw new IllegalMacroCall();
-        }
 
         try {
             Macro m = macLib.getMacros(macroName);
@@ -404,12 +436,45 @@ public class MacroGenerator {
                 (readChar >= 48 && readChar <= 57) || readChar == UNDERSCORE);
     }
 
+    private boolean keyChars(){
+        return readChar == HASH || readChar == DOLLAR || readChar == OPENING_BRACKET || readChar == CLOSING_BRACKET
+                || readChar == OPENING_CURVE_BRACKET || readChar == CLOSING_CURVE_BRACKET;
+    }
+
+
+
+    private void finishCopingDefinition() throws IOException {
+        while(getChar() != CLOSING_CURVE_BRACKET){
+            if(readChar == -1){
+                errorLogging("Error: File reaches its end:\n\t\tThere ware not found any \'}\' for macrodefinition in line <" + startLine + ">.");
+                throw new IOException("Error: File reaches its end:\n\t\tThere ware not found any \'}\' for macrodefinition in line <" + startLine + ">.");
+            }
+            addCharToLogString();
+        }
+        addCharToLogString();
+    }
+
+    private void finishCopingCall() throws IOException {
+        while(getChar() != CLOSING_BRACKET){
+            if(readChar == -1){
+                errorLogging("Error: File reaches its end:\n\t\tThere ware not found any \')\' for macrocall in line <" + startLine + ">. \n\t\t" + macroDefOrCallToCheck);
+                throw new IOException("Error: File reaches its end:\n\t\tThere ware not found any \')\' for macrocall in line <" + startLine + ">. \n\t\t" + macroDefOrCallToCheck);
+            }
+            addCharToLogString();
+        }
+        addCharToLogString();
+    }
 
     private int getChar() throws IOException {
         prevReadChar = readChar;
 
-        if((char)prevReadChar == '\n'){
+
+        if(prevReadChar == EOL){
             currentLine++;
+        }
+
+        if(prevReadChar == 0){
+            prevReadChar = EOL;
         }
         //System.out.println(readChar);
         return (readChar = inputStream.read());

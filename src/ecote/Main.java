@@ -8,24 +8,29 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        /*if(args.length != 3){
-            System.err.println("You should provied 3 file name as input parameters!");
-            System.err.println("#1: file with macrogenerator [MUST EXIST]!");
-            System.err.println("#2: file for output!");
-            System.err.println("#3: file for logs!");
-            System.exit(1);
-        }*/
 
 
-        /*TODO
-            Write correct test for all test cases.
-         */
+
+
+
+        String inputPath = "test_cases/input/";
+        String outputPath = "test_cases/output/";
+        String logPath = "test_cases/logs/";
 
         try{
-            MacroGenerator m = new MacroGenerator("test_cases/input/test", "testout", "log");
-            m.read();
-        }catch (ArrayIndexOutOfBoundsException e){
-            System.err.println("Please give input file names!");
+            MacroGenerator m1 = new MacroGenerator(inputPath + "test1", outputPath + "out_test1", logPath + "log_test1");
+            m1.read();
+            /*MacroGenerator m2 = new MacroGenerator(inputPath + "test2", outputPath + "out_test2", logPath + "log_test2");
+            m2.read();
+            MacroGenerator m3 = new MacroGenerator(inputPath + "test3", outputPath + "out_test3", logPath + "log_test3");
+            m3.read();
+            MacroGenerator m4 = new MacroGenerator(inputPath + "test4", outputPath + "out_test4", logPath + "log_test4");
+            m4.read();
+            MacroGenerator m5 = new MacroGenerator(inputPath + "test5", outputPath + "out_test5", logPath + "log_test5");
+            m5.read();
+            MacroGenerator m6 = new MacroGenerator(inputPath + "test6", outputPath + "out_test6", logPath + "log_test6");
+            m6.read();*/
+
         }catch (RuntimeException e){
             //System.out.println(e.getMessage());
         }

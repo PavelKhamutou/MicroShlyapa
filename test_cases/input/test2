@@ -1,11 +1,20 @@
-AAA
-#NAMe(&1, &2, &3){
-body &1
-body &2
-body &3
-}
+hello
+This is test case №2
 
-qwe
-here we go
+Here we are testing spaces and EOF's influens on macrocall and macrodefinition. Also different
+    charactert in names and parameters.
 
-$NAMe(QWE, ewq, ttt)
+#Some_random123NAME(      &1,
+    &2,
+        &3
+        )   { this &1
+ not &2
+     an_error for
+    &3}
+
+
+$Some_random123NAME(    should,
+    give,   you)
+
+
+Thank you.

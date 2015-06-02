@@ -1,10 +1,17 @@
-AAA
+hello
+This is test case №2
+
+Here we are testing spaces and EOF's influens on macrocall and macrodefinition. Also different
+    charactert in names and parameters.
 
 
-qwe
-here we go
 
 
-body QWE
-body  ewq
-body  ttt
+ this     should
+ not 
+    give
+     an_error for
+       you
+
+
+Thank you.

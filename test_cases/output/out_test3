@@ -1,3 +1,40 @@
-AA
+Hello
+THIS IS TEST CASE $3, ops #3!
 
-FOUND
+Here i'm going to test some errors:
+    1) I will create 3 definitions, but call only 2 of them.
+    2) In one macro call, i will put less parameters then required and in 2nd more then required.
+    3) Redefine macros.
+    4) I will call not declared macros. &
+
+
+
+
+
+hey! Pavel how are you  doing fine?  right?
+
+now with less then required:
+hey! Chip how are you   fine?  
+
+
+
+
+ we are the  best
+
+now with more then required:
+
+ we  much the  more
+ we  can think the  best
+
+calling not declated macros:
+
+
+
+
+
+
+redefinition:
+
+
+
+I am redefined!

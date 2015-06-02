@@ -1,6 +1,16 @@
-AAA
-#NAME(&1, &2){123 &1 321 &2)
-BB
-#NAME(&1){body &1}
-$NAME(x, y, z)
-aaa
+testing macro call brakets issues:
+
+#some_macros(&1, &2) {dummy &1 Bob &2}
+
+$some_macros(dude, is cool)
+
+$some_macrosdude, is cool)
+
+
+
+$some_macros(dude, is cool
+
+end
+
+
+

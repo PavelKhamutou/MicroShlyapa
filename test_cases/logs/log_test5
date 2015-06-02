@@ -1,7 +1,15 @@
-Error!: Something wrong with macro definition. Line<2>:
-		#NAME(&1, &2){123 &1 321 &2)
-BB
-#NAME(&1){body &1}
-		
-Error!: Macros not found. Line<5>:
-		Macros: <NAME> not found in the library!
+Error!: Something wrong with macro call. Line<7>: 
+		$some_macrosdude, is cool)
+		Illegal name. Possible causes:
+			1) You have forgotten opening bracket.
+			2) You have used improper character ','.
+		List of proper characters: [a-z][A-Z][0-9][_]
+Error: File reaches its end:
+		There ware not found any ')' for macrocall in line <11>. 
+		$some_macros(dude, is cool
+
+end
+
+
+
+

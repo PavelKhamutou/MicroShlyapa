@@ -1,5 +1,16 @@
-111
+Hello once again
+this is test case 4
+here im going to test program crashes such that:
+1 -> Forgetting to put (){} in definition.
 
-222
-b AAA b MISSING_PARAMETER_#1
-QQQ
+
+missing opening bracket:
+
+
+missing closing bracket:
+
+
+missing opening curve bracket:
+
+
+missing closing curve bracket. If it won't find any } program will be stopped after this error:

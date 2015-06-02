@@ -1,1 +1,27 @@
-Warning!: Macros <A> has been declared but never used!
+Error!: Something wrong with macro definition. Line<6>:
+		#Na@bro(&1, &2){asd &1, &2}
+		Illegal name. Possible causes: 
+			1) You have forgotten opening bracket.
+			2) You have used improper character '@'.
+		List of proper characters: [a-z][A-Z][0-9][_]
+Error!: Something wrong with macro definition. Line<8>:
+		#n a(&1){asd &1}
+		Illegal name. Possible causes: 
+			1) You have forgotten opening bracket.
+			2) You have used improper character ' '.
+		List of proper characters: [a-z][A-Z][0-9][_]
+Error!: Something wrong with macro definition. Line<10>:
+		#cool(71, 72){asd &1 asd &2}
+		Illegal parameter list. Improper character: '7'.
+Error!: Something wrong with macro definition. Line<12>:
+		#nope(&1, &123) { &123 &2 }
+		Parameter's values are not equal in the body and the definition! Definition: [1, 123] Body: [123, 2]
+Error!: Something wrong with macro definition. Line<14>:
+		#nope(&1, &123) { q &123 w &2  e &3}
+		Parameter list is not equal.
+Error!: Something wrong with macro definition. Line<16>:
+		#NAME(&!){}
+		Ampersand is not followed by digits. Instead it is followed by '!'.
+Warning!: Not enough parameters. Line<20>:
+		The definition of macros <LAST> requires <2> parameters
+		but <1> found. Missing parameters will be substituted with < >.

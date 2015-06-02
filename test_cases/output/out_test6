@@ -1,5 +1,22 @@
-SSS
+ok, this is the last test for today:
+
+now we will check syntaxical errors like wrong parameters and names:
 
 
-CCC
- call_b q call_b  e
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ lst param1 param12 test  
+
+ lst param1 test  param12

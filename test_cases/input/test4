@@ -1,5 +1,26 @@
-111
-#NA( &1, &2){b &1 b &2}
-222
-$NA(AAA)
-QQQ
+Hello once again
+this is test case 4
+here im going to test program crashes such that:
+1 -> Forgetting to put (){} in definition.
+
+
+missing opening bracket:
+#name&1, &2){
+ some &1 text &2
+}
+
+missing closing bracket:
+#name(&1, &2{
+ some &1 text &2
+}
+
+missing opening curve bracket:
+#name(&1, &2)
+ some &1 text &2
+}
+
+missing closing curve bracket. If it won't find any } program will be stopped after this error:
+#name(&1, &2){some &1 text &2
+
+
+$name(1, 2)

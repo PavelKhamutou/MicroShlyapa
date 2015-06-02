@@ -1,3 +1,41 @@
-AA
-$SOX(123, 321)
-FOUND
+Hello
+THIS IS TEST CASE $3, ops #3!
+
+Here i'm going to test some errors:
+    1) I will create 3 definitions, but call only 2 of them.
+    2) In one macro call, i will put less parameters then required and in 2nd more then required.
+    3) Redefine macros.
+    4) I will call not declared macros. &
+
+
+
+#MACRO_1(&1, &2, &3){hey! &1 how are you &2 fine? &3}
+
+$MACRO_1(Pavel, doing, right?)
+
+now with less then required:
+$MACRO_1(Chip)
+
+
+#MACRO_2(&1, &2){ we &1 the &2}
+
+$MACRO_2(are, best)
+
+now with more then required:
+
+$MACRO_2(are, best, much, more)
+$MACRO_2(are, best, much, more, then, you, can think)
+
+calling not declated macros:
+
+$ImNotDeclared( cool, right?)
+
+#macro_3(&1){ never use &1}
+
+
+redefinition:
+
+#MACRO_2(&1)
+{I am &1}
+
+$MACRO_2(redefined!)

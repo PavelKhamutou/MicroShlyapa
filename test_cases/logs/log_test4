@@ -1,3 +1,29 @@
-Error!: Not enough parameters. Line<4>:
-		The definition of macros <NA> requires <2> parameters
-		but <1> found. Missing parameters will be substituted with <MISSING_PARAMETER>
+Warning!: The key character '(' is used in free text in line <4>.
+Warning!: The key character ')' is used in free text in line <4>.
+Warning!: The key character '{' is used in free text in line <4>.
+Warning!: The key character '}' is used in free text in line <4>.
+Error!: Something wrong with macro definition. Line<8>:
+		#name&1, &2){
+ some &1 text &2
+}
+		Illegal name. Possible causes: 
+			1) You have forgotten opening bracket.
+			2) You have used improper character '&'.
+		List of proper characters: [a-z][A-Z][0-9][_]
+Error!: Something wrong with macro definition. Line<13>:
+		#name(&1, &2{
+ some &1 text &2
+}
+		Illegal character in definition: '{'
+		'&' may be followed by space, comma or EOL.
+		Possible cause: You have forgotten ')'.
+Error!: Something wrong with macro definition. Line<18>:
+		#name(&1, &2)
+ some &1 text &2
+}
+		Probable causes:
+			Missing '{'.
+			There is text between ')' and '{'.
+Warning!: The key character '}' is used in free text in line <22>.
+Error: File reaches its end:
+		There ware not found any '}' for macrodefinition in line <23>.

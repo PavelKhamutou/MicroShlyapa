@@ -1,5 +1,22 @@
-SSS
-#A(&1){ call_a &1}
-#B(&1){ call_b &1}
-CCC
-$B(q, e)
+ok, this is the last test for today:
+
+now we will check syntaxical errors like wrong parameters and names:
+
+
+#Na@bro(&1, &2){asd &1, &2}
+
+#n a(&1){asd &1}
+
+#cool(71, 72){asd &1 asd &2}
+
+#nope(&1, &123) { &123 &2 }
+
+#nope(&1, &123) { q &123 w &2  e &3}
+
+#NAME(&!){}
+
+#LAST(&1, &12){ lst &1 test &12 }
+
+$LAST(param1 param12)
+
+$LAST(param1, param12)

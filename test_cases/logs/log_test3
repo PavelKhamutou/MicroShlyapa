@@ -1,2 +1,14 @@
-Error!: Macros not found. Line<2>:
-		Macros: <SOX> not found in the library!
+Warning!: The key character '$' is used in free text in line <2>.
+Warning!: The key character '#' is used in free text in line <2>.
+Warning!: The key character ')' is used in free text in line <5>.
+Warning!: The key character ')' is used in free text in line <6>.
+Warning!: The key character ')' is used in free text in line <7>.
+Warning!: The key character ')' is used in free text in line <8>.
+Warning!: The key character '&' is used in free text in line <8>.
+Warning!: Not enough parameters. Line<17>:
+		The definition of macros <MACRO_1> requires <3> parameters
+		but <1> found. Missing parameters will be substituted with < >.
+Error!: Macros not found. Line<31>:
+		Macros: <ImNotDeclared> not found in the library!
+Warning!: Line<38>: Name <MACRO_2> has been already used! Now it will redefined.
+Warning!: Macros <macro_3> has been declared but never used!
