@@ -7,7 +7,6 @@ import ecote.Exceptions.*;
 public class MacroLib {
     private Map<String, Macro> mcLib = new HashMap<String, Macro>();
 
-
     public void addMacro(String name, int numberIfParameters, String[] freeText) throws MacrosNameIsAlreadyUsed {
         if(mcLib.containsKey(name)){
             mcLib.remove(name);
@@ -19,7 +18,7 @@ public class MacroLib {
         }
     }
 
-    public Macro getMacros(String name) throws MacrosNotFound {
+    public Macro getMacro(String name) throws MacrosNotFound {
         if(mcLib.containsKey(name)){
             mcLib.get(name).setUsed();
             return mcLib.get(name);
@@ -29,7 +28,7 @@ public class MacroLib {
         }
     }
 
-    public List<Macro> unusedMacroses(){
+    public List<Macro> getUnusedMacroses(){
         List<Macro> unused = new ArrayList<Macro>();
         for(String key: mcLib.keySet()){
             if(!mcLib.get(key).getUsed()){
@@ -38,9 +37,5 @@ public class MacroLib {
         }
         return unused;
     }
-/*
-    @Override
-    public String toString() {
-        return "macroLib: \n" + mcLib.toString();
-    }*/
+
 }

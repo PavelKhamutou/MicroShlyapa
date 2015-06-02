@@ -35,9 +35,9 @@ public class MacroGenerator {
     private int readChar;
     private int prevReadChar = 0;
 
-    FileReader inputStream = null;
-    FileWriter outputStream = null;
-    FileWriter logStream = null;
+    private FileReader inputStream = null;
+    private FileWriter outputStream = null;
+    private FileWriter logStream = null;
 
 
     public MacroGenerator(String inputFile, String outputFile, String logFile){
@@ -46,7 +46,7 @@ public class MacroGenerator {
         this.logFile = logFile;
     }
 
-    public void read() throws IOException {
+    public void readFile() throws IOException {
         try {
 
             inputStream = new FileReader(inputFile);
@@ -91,12 +91,9 @@ public class MacroGenerator {
 
     }
 
-
     private void addCharToLogString(){
         macroDefOrCallToCheck += (char)readChar;
     }
-
-
 
     private void readMacros() throws IOException, IllegalMacroDefinition {
 
@@ -194,7 +191,7 @@ public class MacroGenerator {
                     throw new IllegalMacroDefinition("Comma separator is not found! Instead \'" + tmp + "\' is found.");
                 }
 
-            } // end of read==&
+            } // end of readFile==&
         }
 
 
@@ -289,8 +286,6 @@ public class MacroGenerator {
 
     }
 
-
-
     private int getDigits(List<Integer> list){
         int power = 0;
         int digit = 0;
@@ -299,8 +294,6 @@ public class MacroGenerator {
         }
         return digit;
     }
-
-
 
     private void callMacros() throws IOException, IllegalMacroCall {
         macroDefOrCallToCheck = Character.toString((char)readChar);
@@ -327,7 +320,7 @@ public class MacroGenerator {
 
         while(getChar() != CLOSING_BRACKET) {
             if(readChar == -1){
-                errorLogging("Error: File reaches its end:\n\t\tThere ware not found any \')\' for macrocall in line <" + startLine + ">. \n\t\t" + macroDefOrCallToCheck);
+                errorLogging("Error: File reaches its end:\n\t\tThere ware not found any \')\' for macrocall in line <" + startLine + ">: \n\t\t" + macroDefOrCallToCheck);
                 throw new IOException("Error: File reaches its end:\n\t\tThere ware not found any \')\' for macrocall in line <" + startLine + ">. \n\t\t" + macroDefOrCallToCheck);
             }
             addCharToLogString();
@@ -352,7 +345,7 @@ public class MacroGenerator {
 
 
         try {
-            Macro m = macLib.getMacros(macroName);
+            Macro m = macLib.getMacro(macroName);
             String[] freeText = m.getFreeText();
 
             int mcNumberParameters = m.getNumberOfParameters();
@@ -418,7 +411,7 @@ public class MacroGenerator {
     }
 
     private void checkIfAllMacrosesUsed() throws IOException {
-        List<Macro> unusedMacro = new ArrayList<Macro>(macLib.unusedMacroses());
+        List<Macro> unusedMacro = new ArrayList<Macro>(macLib.getUnusedMacroses());
         for(Macro m: unusedMacro){
             errorLogging("Warning!: Macros <" + m.getName() + "> has been declared but never used!");
         }
@@ -441,8 +434,6 @@ public class MacroGenerator {
                 || readChar == OPENING_CURVE_BRACKET || readChar == CLOSING_CURVE_BRACKET;
     }
 
-
-
     private void finishCopingDefinition() throws IOException {
         while(getChar() != CLOSING_CURVE_BRACKET){
             if(readChar == -1){
@@ -457,8 +448,8 @@ public class MacroGenerator {
     private void finishCopingCall() throws IOException {
         while(getChar() != CLOSING_BRACKET){
             if(readChar == -1){
-                errorLogging("Error: File reaches its end:\n\t\tThere ware not found any \')\' for macrocall in line <" + startLine + ">. \n\t\t" + macroDefOrCallToCheck);
-                throw new IOException("Error: File reaches its end:\n\t\tThere ware not found any \')\' for macrocall in line <" + startLine + ">. \n\t\t" + macroDefOrCallToCheck);
+                errorLogging("Error: File reaches its end:\n\t\tThere ware not found any \')\' for macrocall in line <" + startLine + ">: \n\t\t" + macroDefOrCallToCheck);
+                throw new IOException("Error: File reaches its end:\n\t\tThere ware not found any \')\' for macrocall in line <" + startLine + ">: \n\t\t" + macroDefOrCallToCheck);
             }
             addCharToLogString();
         }

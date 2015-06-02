@@ -19,17 +19,17 @@ public class Main {
 
         try{
             MacroGenerator m1 = new MacroGenerator(inputPath + "test1", outputPath + "out_test1", logPath + "log_test1");
-            m1.read();
+            m1.readFile();
             /*MacroGenerator m2 = new MacroGenerator(inputPath + "test2", outputPath + "out_test2", logPath + "log_test2");
-            m2.read();
+            m2.readFile();
             MacroGenerator m3 = new MacroGenerator(inputPath + "test3", outputPath + "out_test3", logPath + "log_test3");
-            m3.read();
+            m3.readFile();
             MacroGenerator m4 = new MacroGenerator(inputPath + "test4", outputPath + "out_test4", logPath + "log_test4");
-            m4.read();
+            m4.readFile();
             MacroGenerator m5 = new MacroGenerator(inputPath + "test5", outputPath + "out_test5", logPath + "log_test5");
-            m5.read();
+            m5.readFile();
             MacroGenerator m6 = new MacroGenerator(inputPath + "test6", outputPath + "out_test6", logPath + "log_test6");
-            m6.read();*/
+            m6.readFile();*/
 
         }catch (RuntimeException e){
             //System.out.println(e.getMessage());
